@@ -1,55 +1,130 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Use Next.js router instead of window.location
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authService } from '@/services/authService';
+import { 
+  Calendar, 
+  Users, 
+  DollarSign, 
+  Award, 
+  Settings, 
+  Bell, 
+  FileText,
+  LogOut,
+  CheckCircle,
+  Clock,
+  MapPin
+} from 'lucide-react';
 
 export default function DashboardPage() {
   const { t } = useLanguage();
   const router = useRouter();
-  const user = authService.getCurrentUser();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Use useEffect to redirect on client side only
+  // Fetch user data
   useEffect(() => {
-    if (!user) {
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser) {
       router.push('/auth/login');
+    } else {
+      // Simulate fetching user data
+      const userWithDetails = {
+        ...currentUser,
+        name: currentUser.name || 'User',
+        email: currentUser.email || 'user@example.com',
+        role: currentUser.role || 'member',
+        language: currentUser.language || 'en',
+        emailVerified: currentUser.emailVerified || true,
+        membership: {
+          status: 'active',
+          type: 'premium',
+          membershipId: `SLMA-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+          since: '2024'
+        }
+      };
+      setUser(userWithDetails);
+      setLoading(false);
     }
-  }, [user, router]);
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     return null; // Will redirect via useEffect
   }
 
-  // Rest of your dashboard code...
   const stats = [
-    { label: 'Membership Status', value: user.membership.status, emoji: '✅', color: 'text-green-600' },
-    { label: 'Member Since', value: '2024', emoji: '📅', color: 'text-blue-600' },
-    { label: 'Events Attended', value: '5', emoji: '👥', color: 'text-purple-600' },
-    { label: 'Total Donations', value: 'ETB 2,500', emoji: '❤️', color: 'text-orange-600' },
+    { 
+      label: 'Membership Status', 
+      value: user.membership.status.charAt(0).toUpperCase() + user.membership.status.slice(1), 
+      emoji: '✅', 
+      icon: <Award className="w-6 h-6 text-green-600" />
+    },
+    { 
+      label: 'Member Since', 
+      value: user.membership.since, 
+      emoji: '📅', 
+      icon: <Calendar className="w-6 h-6 text-blue-600" />
+    },
+    { 
+      label: 'Events Attended', 
+      value: '5', 
+      emoji: '👥', 
+      icon: <Users className="w-6 h-6 text-purple-600" />
+    },
+    { 
+      label: 'Total Donations', 
+      value: 'ETB 2,500', 
+      emoji: '❤️', 
+      icon: <DollarSign className="w-6 h-6 text-orange-600" />
+    },
   ];
 
+  const quickActions = [
+    { label: 'Edit Profile', icon: <Settings className="w-5 h-5" />, action: () => router.push('/profile/edit') },
+    { label: 'Notifications', icon: <Bell className="w-5 h-5" />, action: () => router.push('/notifications') },
+    { label: 'My Events', icon: <Calendar className="w-5 h-5" />, action: () => router.push('/events/my') },
+    { label: 'Documents', icon: <FileText className="w-5 h-5" />, action: () => router.push('/documents') }
+  ];
+
+  const recentActivities = [
+    { text: 'Updated profile information', time: '2 hours ago', icon: <Settings /> },
+    { text: 'Registered for Cultural Festival', time: '1 day ago', icon: <Calendar /> },
+    { text: 'Made a donation to Education Fund', time: '3 days ago', icon: <DollarSign /> },
+    { text: 'Joined Worabe community group', time: '1 week ago', icon: <MapPin /> }
+  ];
+
+  const handleLogout = () => {
+    authService.logout();
+    router.push('/');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="dashboard-page">
       {/* Dashboard Header */}
-      <div className="bg-gradient-to-r from-[#2E7D32] to-[#D32F2F] text-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Welcome back, {user.name}!</h1>
-              <p className="text-white/80">Here's what's happening with your SLMA account</p>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-xl">🏆</span>
-                  </div>
-                  <div>
-                    <p className="text-sm">Membership ID</p>
-                    <p className="font-mono font-bold">{user.membership.membershipId || 'SLMA-2024-0001'}</p>
-                  </div>
-                </div>
+      <div className="dashboard-header">
+        <div className="dashboard-header-content">
+          <div className="dashboard-welcome">
+            <h1 className="dashboard-title">Welcome back, {user.name}!</h1>
+            <p className="dashboard-subtitle">Here's what's happening with your SLMA account</p>
+          </div>
+          <div className="membership-id-card">
+            <div className="id-card-content">
+              <div className="id-avatar">
+                <span>🏆</span>
+              </div>
+              <div className="id-info">
+                <p className="id-label">Membership ID</p>
+                <p className="id-value">{user.membership.membershipId}</p>
               </div>
             </div>
           </div>
@@ -57,79 +132,94 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Stats */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-3xl">{stat.emoji}</div>
-                    <div>
-                      <p className="text-sm text-gray-600">{stat.label}</p>
-                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+      <div className="dashboard-main">
+        <div className="dashboard-container">
+          <div className="dashboard-grid">
+            {/* Left Column - Stats & Membership */}
+            <div className="left-column">
+              {/* Stats Grid */}
+              <div className="stats-grid">
+                {stats.map((stat, index) => (
+                  <div key={index} className="stat-card">
+                    <div className="stat-content">
+                      <div className="stat-emoji">{stat.emoji}</div>
+                      <div className="stat-info">
+                        <p className="stat-label">{stat.label}</p>
+                        <p className="stat-value">{stat.value}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Membership Card */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Your Membership</h2>
-              <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffebee] rounded-xl p-6">
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {user.membership.type ? user.membership.type.charAt(0).toUpperCase() + user.membership.type.slice(1) : 'General'} Member
-                    </h3>
-                    <p className="text-gray-600 mt-1">
-                      Status: <span className={`font-semibold ${user.membership.status === 'active' ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {user.membership.status ? user.membership.status.charAt(0).toUpperCase() + user.membership.status.slice(1) : 'Pending'}
-                      </span>
-                    </p>
+              {/* Membership Card */}
+              <div className="membership-card">
+                <h2 className="membership-card-title">Your Membership</h2>
+                <div className="membership-details">
+                  <div className="membership-header">
+                    <div className="membership-info">
+                      <h3>
+                        {user.membership.type ? user.membership.type.charAt(0).toUpperCase() + user.membership.type.slice(1) : 'General'} Member
+                      </h3>
+                      <p className="membership-status">
+                        Status: <span className={`status-${user.membership.status}`}>
+                          {user.membership.status ? user.membership.status.charAt(0).toUpperCase() + user.membership.status.slice(1) : 'Pending'}
+                        </span>
+                      </p>
+                    </div>
+                    <button className="renew-button">
+                      {user.membership.status === 'active' ? 'Renew Membership' : 'Activate Membership'}
+                    </button>
                   </div>
-                  <button className="bg-[#2E7D32] hover:bg-[#388e3c] text-white font-semibold py-2 px-6 rounded-lg transition duration-300 mt-4 md:mt-0">
-                    {user.membership.status === 'active' ? 'Renew Membership' : 'Activate Membership'}
-                  </button>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="quick-actions">
+                <h3 className="actions-title">Quick Actions</h3>
+                <div className="actions-grid">
+                  {quickActions.map((action, index) => (
+                    <button 
+                      key={index} 
+                      className="action-button"
+                      onClick={action.action}
+                    >
+                      <div className="action-icon">{action.icon}</div>
+                      <div className="action-label">{action.label}</div>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Column - Profile */}
-          <div className="space-y-8">
-            {/* Profile Summary */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Profile Summary</h2>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-r from-[#2E7D32] to-[#D32F2F] flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">
-                      {user.name.charAt(0)}
-                    </span>
+            {/* Right Column - Profile & Activity */}
+            <div className="right-column">
+              {/* Profile Summary */}
+              <div className="profile-summary">
+                <h2 className="profile-title">Profile Summary</h2>
+                <div className="profile-header">
+                  <div className="profile-avatar">
+                    {user.name.charAt(0)}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                    <p className="text-gray-600">{user.email}</p>
-                    <p className="text-sm text-gray-500">
+                  <div className="profile-info">
+                    <h3>{user.name}</h3>
+                    <p className="profile-email">{user.email}</p>
+                    <p className="profile-role">
                       {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Member'} Member
                     </p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Email Verified</span>
-                    <span className={user.emailVerified ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'}>
+                <div className="profile-details">
+                  <div className="profile-detail">
+                    <span className="detail-label">Email Verified</span>
+                    <span className={`detail-value ${user.emailVerified ? 'verified' : 'pending'}`}>
                       {user.emailVerified ? 'Verified' : 'Pending'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Language</span>
-                    <span className="font-semibold">
+                  <div className="profile-detail">
+                    <span className="detail-label">Language</span>
+                    <span className="detail-value">
                       {user.language === 'en' ? 'English' : 
                        user.language === 'am' ? 'Amharic' : 'Silte'}
                     </span>
@@ -137,14 +227,30 @@ export default function DashboardPage() {
                 </div>
 
                 <button
-                  onClick={() => {
-                    authService.logout();
-                    router.push('/');
-                  }}
-                  className="w-full border-2 border-[#2E7D32] text-[#2E7D32] hover:bg-[#e8f5e9] font-semibold py-2 px-6 rounded-lg transition duration-300"
+                  onClick={handleLogout}
+                  className="logout-button"
                 >
+                  <LogOut className="inline w-4 h-4 mr-2" />
                   Logout
                 </button>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="recent-activity">
+                <h3 className="activity-title">Recent Activity</h3>
+                <div className="activity-list">
+                  {recentActivities.map((activity, index) => (
+                    <div key={index} className="activity-item">
+                      <div className="activity-icon">
+                        {activity.icon}
+                      </div>
+                      <div className="activity-content">
+                        <p className="activity-text">{activity.text}</p>
+                        <p className="activity-time">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

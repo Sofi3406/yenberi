@@ -13,7 +13,22 @@ import bcrypt from 'bcryptjs';
 // @route   POST /api/auth/register
 // @access  Public
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, zone, language } = req.body;
+  const { name, email, password, phone, woreda, language } = req.body; // Changed zone to woreda
+
+  // Check if all required fields are provided
+  if (!name || !email || !password || !phone || !woreda) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide all required fields',
+      errors: {
+        name: !name ? 'Name is required' : undefined,
+        email: !email ? 'Email is required' : undefined,
+        password: !password ? 'Password is required' : undefined,
+        phone: !phone ? 'Phone is required' : undefined,
+        woreda: !woreda ? 'Woreda is required' : undefined,
+      }
+    });
+  }
 
   // Check if user exists
   const userExists = await User.findOne({ email });
@@ -21,6 +36,26 @@ export const register = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: 'User already exists',
+      errors: { email: 'Email already registered' }
+    });
+  }
+
+  // Validate email format
+  const emailRegex = /\S+@\S+\.\S+/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid email format',
+      errors: { email: 'Invalid email format' }
+    });
+  }
+
+  // Validate password length
+  if (password.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters',
+      errors: { password: 'Password must be at least 8 characters' }
     });
   }
 
@@ -31,13 +66,13 @@ export const register = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Create user
+  // Create user with woreda instead of zone
   const user = await User.create({
     name,
-    email,
+    email: email.toLowerCase(),
     password: hashedPassword,
     phone,
-    zone,
+    woreda, // Changed from zone to woreda
     language: language || 'en',
     verificationToken,
   });
@@ -45,8 +80,17 @@ export const register = asyncHandler(async (req, res) => {
   // Generate token
   const token = generateToken(user._id, user.role);
 
-  // Send verification email
-  await sendVerificationEmail(user.email, user.name, verificationToken);
+  // Send verification email (if email service is set up)
+  try {
+    await sendVerificationEmail(user.email, user.name, verificationToken);
+  } catch (emailError) {
+    console.error('Failed to send verification email:', emailError);
+    // Continue anyway, user can request verification email later
+  }
+
+  // Remove password from response
+  const userResponse = user.toObject();
+  delete userResponse.password;
 
   res.status(201).json({
     success: true,
@@ -56,6 +100,8 @@ export const register = asyncHandler(async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
+      woreda: user.woreda,
       role: user.role,
       membership: user.membership,
       language: user.language,

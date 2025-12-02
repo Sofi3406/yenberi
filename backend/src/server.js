@@ -7,7 +7,8 @@ import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 // Import routes
-import authRoutes from './routes/authRoutes.js';
+import authRoutes from './routes/auth.js';
+
 
 // Load env vars
 dotenv.config();

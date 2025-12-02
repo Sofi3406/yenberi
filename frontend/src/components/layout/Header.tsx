@@ -25,7 +25,7 @@ const Header = () => {
   const languageOptions = [
     { code: 'en', label: 'EN' },
     { code: 'am', label: 'አማ' },
-    { code: 'silt', label: '******' },
+    { code: 'silt', label: 'ስል' },
   ];
 
   return (
@@ -37,7 +37,7 @@ const Header = () => {
             <span>SL</span>
           </div>
           <div className="header-logo-text">
-            <h1 className="site-title">Silte Ləmat Mehber</h1>
+            <h1 className="site-title">Silte Lmat Mehber</h1>
             <p className="site-subtitle">{t('hero.subtitle')}</p>
           </div>
         </Link>

@@ -24,15 +24,17 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      required: [true, 'Phone number is required'],
     },
     role: {
       type: String,
       enum: ['member', 'woreda_admin', 'super_admin'],
       default: 'member',
     },
-    woreda: { // Changed from zone to woreda
+    woreda: {
       type: String,
-      default: '',
+      required: [true, 'Woreda is required'],
+      enum: ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'],
     },
     membership: {
       type: {
