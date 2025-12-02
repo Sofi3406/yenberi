@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Upload, FileText, X, Banknote, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 // Woredas data
@@ -20,6 +20,13 @@ const woredas = [
   { id: 'west-azernet-berbere', name: 'West Azernet Berbere' },
 ];
 
+// Membership plans
+const membershipPlans = [
+  { id: 'basic', name: 'Basic Member', price: 0, description: 'Free membership' },
+  { id: 'active', name: 'Active Member', price: 500, description: 'ETB 500/year' },
+  { id: 'premium', name: 'Premium Member', price: 1200, description: 'ETB 1,200/year' },
+];
+
 const RegistrationForm = () => {
   const { language, t } = useLanguage();
   const router = useRouter();
@@ -29,6 +36,7 @@ const RegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -37,9 +45,14 @@ const RegistrationForm = () => {
     confirmPassword: '',
     phone: '',
     woreda: '',
+    membershipPlan: 'active',
     language: language,
     agreeToTerms: false,
   });
+
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Update language when context changes
   useEffect(() => {
@@ -65,6 +78,46 @@ const RegistrationForm = () => {
     }
     if (successMessage) {
       setSuccessMessage('');
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, receipt: 'Please upload JPG, PNG, or PDF file' }));
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, receipt: 'File size must be less than 5MB' }));
+      return;
+    }
+
+    setReceiptFile(file);
+    setErrors(prev => ({ ...prev, receipt: '' }));
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReceiptPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setReceiptPreview(null);
+    }
+  };
+
+  const removeFile = () => {
+    setReceiptFile(null);
+    setReceiptPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -107,6 +160,12 @@ const RegistrationForm = () => {
       newErrors.woreda = 'Please select your woreda';
     }
     
+    // Check if payment is required
+    const selectedPlan = membershipPlans.find(p => p.id === formData.membershipPlan);
+    if (selectedPlan && selectedPlan.price > 0 && !receiptFile) {
+      newErrors.receipt = 'Payment receipt is required for paid membership';
+    }
+    
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = 'You must agree to the terms and conditions';
     }
@@ -126,28 +185,36 @@ const RegistrationForm = () => {
     }
     
     setIsLoading(true);
+    setUploadProgress(0);
     
     try {
       const { confirmPassword, agreeToTerms, ...registrationData } = formData;
       
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      
+      // Add user data
+      formDataToSend.append('userData', JSON.stringify(registrationData));
+      
+      // Add receipt file if exists
+      if (receiptFile) {
+        formDataToSend.append('receipt', receiptFile);
+      }
+      
       const API_URL = 'http://localhost:5000';
       const endpoint = `${API_URL}/api/auth/register`;
       
-      console.log('Sending request to:', endpoint);
-      console.log('Request data:', registrationData);
+      console.log('Sending registration request...');
       
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationData),
+        body: formDataToSend,
       });
       
       // Get response as text first
       const responseText = await response.text();
       console.log('Response status:', response.status);
-      console.log('Raw response (first 500 chars):', responseText.substring(0, 500));
+      console.log('Raw response:', responseText.substring(0, 500));
       
       let data;
       
@@ -208,10 +275,12 @@ const RegistrationForm = () => {
         confirmPassword: '',
         phone: '',
         woreda: '',
+        membershipPlan: 'active',
         language: language,
         agreeToTerms: false,
       });
-      
+      setReceiptFile(null);
+      setReceiptPreview(null);
       setErrors({});
       
       // Store token and user data if provided
@@ -255,301 +324,460 @@ const RegistrationForm = () => {
       }
     } finally {
       setIsLoading(false);
+      setUploadProgress(0);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="registration-form" noValidate>
-      {/* Success message */}
-      {successMessage && (
-        <div className="success-message">
-          <div className="success-icon">✓</div>
-          <div className="success-content">
-            <p className="success-title">Registration Successful!</p>
-            <p className="success-text">{successMessage}</p>
-            <div className="success-actions">
-              <button
-                type="button"
-                className="success-button primary"
-                onClick={() => router.push('/auth/login')}
-              >
-                Go to Login
-              </button>
-              <button
-                type="button"
-                className="success-button secondary"
-                onClick={() => window.location.reload()}
-              >
-                Register Another Account
-              </button>
+    <div className="registration-container">
+      {/* Payment Information Banner */}
+      <div className="payment-banner">
+        <div className="payment-banner-content">
+          <Banknote className="payment-banner-icon" />
+          <div>
+            <h3 className="payment-banner-title">Payment Information</h3>
+            <p className="payment-banner-text">
+              For Active (ETB 500) or Premium (ETB 1,200) membership, pay to:
+            </p>
+            <div className="payment-details">
+              <div className="payment-detail">
+                <strong>CBE Account:</strong> 1000212203746
+              </div>
+              <div className="payment-detail">
+                <strong>Account Name:</strong> Sofiya Yasin
+              </div>
+              <div className="payment-detail">
+                <strong>Telebirr:</strong> +251930670088
+              </div>
             </div>
+            <p className="payment-instruction">
+              Upload your payment receipt after completing the payment.
+            </p>
           </div>
         </div>
-      )}
-      
-      {/* Form error summary */}
-      {submitError && (
-        <div className="error-summary">
-          <p className="error-summary-title">Registration Error</p>
-          <p className="error-summary-text">{submitError}</p>
-          <div className="debug-help">
-            <p className="debug-title">Troubleshooting:</p>
-            <ol className="debug-steps">
-              <li>Open browser console (F12) and check for errors</li>
-              <li>Verify backend is running: <code>node server.js</code></li>
-              <li>
-                Test with curl:
-                <pre>
-                  {`curl -X POST http://localhost:5000/api/auth/register \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"Test","email":"test@test.com","password":"Password123","phone":"+251911223344","woreda":"worabe","language":"en"}'`}
-                </pre>
-              </li>
-            </ol>
-          </div>
-        </div>
-      )}
-      
-      {/* Show form only if no success message */}
-      {!successMessage && (
-        <>
-          {/* Name field */}
-          <div className="form-group">
-            <label htmlFor="name" className="form-label">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`input-field ${errors.name ? 'input-error' : ''}`}
-              placeholder="Enter your full name"
-              disabled={isLoading}
-              aria-describedby={errors.name ? 'name-error' : undefined}
-            />
-            {errors.name && (
-              <span id="name-error" className="error-message" role="alert">
-                {errors.name}
-              </span>
-            )}
-          </div>
-          
-          {/* Email field */}
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`input-field ${errors.email ? 'input-error' : ''}`}
-              placeholder="Enter your email"
-              disabled={isLoading}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-            />
-            {errors.email && (
-              <span id="email-error" className="error-message" role="alert">
-                {errors.email}
-              </span>
-            )}
-          </div>
-          
-          {/* Password field */}
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              Password *
-            </label>
-            <div className="password-field-wrapper">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`input-field ${errors.password ? 'input-error' : ''}`}
-                placeholder="Create a strong password"
-                disabled={isLoading}
-                aria-describedby={errors.password ? 'password-error' : 'password-help'}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={isLoading}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="registration-form" noValidate>
+        {/* Success message */}
+        {successMessage && (
+          <div className="success-message">
+            <div className="success-icon">✓</div>
+            <div className="success-content">
+              <p className="success-title">Registration Successful!</p>
+              <p className="success-text">{successMessage}</p>
+              <div className="success-actions">
+                <button
+                  type="button"
+                  className="success-button primary"
+                  onClick={() => router.push('/auth/login')}
+                >
+                  Go to Login
+                </button>
+                <button
+                  type="button"
+                  className="success-button secondary"
+                  onClick={() => window.location.reload()}
+                >
+                  Register Another Account
+                </button>
+              </div>
             </div>
-            {errors.password ? (
-              <span id="password-error" className="error-message" role="alert">
-                {errors.password}
-              </span>
-            ) : (
-              <small id="password-help" className="help-text">
-                Minimum 8 characters with uppercase, lowercase, and numbers
-              </small>
-            )}
           </div>
-          
-          {/* Confirm Password field */}
-          <div className="form-group">
-            <label htmlFor="confirmPassword" className="form-label">
-              Confirm Password *
-            </label>
-            <div className="password-field-wrapper">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`input-field ${errors.confirmPassword ? 'input-error' : ''}`}
-                placeholder="Confirm your password"
-                disabled={isLoading}
-                aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={isLoading}
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              >
-                {showConfirmPassword ? 'Hide' : 'Show'}
-              </button>
+        )}
+        
+        {/* Form error summary */}
+        {submitError && (
+          <div className="error-summary">
+            <p className="error-summary-title">Registration Error</p>
+            <p className="error-summary-text">{submitError}</p>
+            <div className="debug-help">
+              <p className="debug-title">Troubleshooting:</p>
+              <ol className="debug-steps">
+                <li>Open browser console (F12) and check for errors</li>
+                <li>Verify backend is running: <code>node server.js</code></li>
+                <li>
+                  Test with curl:
+                  <pre>
+                    {`curl -X POST http://localhost:5000/api/auth/register \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"Test","email":"test@test.com","password":"Password123","phone":"+251911223344","woreda":"worabe","membershipPlan":"active","language":"en"}'`}
+                  </pre>
+                </li>
+              </ol>
             </div>
-            {errors.confirmPassword && (
-              <span id="confirmPassword-error" className="error-message" role="alert">
-                {errors.confirmPassword}
-              </span>
-            )}
           </div>
-          
-          {/* Phone field */}
-          <div className="form-group">
-            <label htmlFor="phone" className="form-label">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className={`input-field ${errors.phone ? 'input-error' : ''}`}
-              placeholder="+251 93 067 0088"
-              disabled={isLoading}
-              aria-describedby={errors.phone ? 'phone-error' : undefined}
-            />
-            {errors.phone && (
-              <span id="phone-error" className="error-message" role="alert">
-                {errors.phone}
-              </span>
-            )}
-          </div>
-          
-          {/* Woreda select field */}
-          <div className="form-group">
-            <label htmlFor="woreda" className="form-label">
-              Woreda *
-            </label>
-            <div className="woreda-select-container">
-              <select
-                id="woreda"
-                name="woreda"
-                value={formData.woreda}
-                onChange={handleChange}
-                className={`input-field select-field ${errors.woreda ? 'input-error' : ''}`}
-                disabled={isLoading}
-                aria-describedby={errors.woreda ? 'woreda-error' : undefined}
-              >
-                {woredas.map(woreda => (
-                  <option 
-                    key={woreda.id} 
-                    value={woreda.id}
-                    className="select-option"
-                    disabled={woreda.id === ''}
-                  >
-                    {woreda.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="woreda-select-icon" size={16} />
-            </div>
-            {errors.woreda && (
-              <span id="woreda-error" className="error-message" role="alert">
-                {errors.woreda}
-              </span>
-            )}
-          </div>
-          
-          {/* Terms and conditions checkbox */}
-          <div className="form-group">
-            <div className="checkbox-group">
-              <input
-                type="checkbox"
-                id="agreeToTerms"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-                className={`checkbox-input ${errors.agreeToTerms ? 'checkbox-error' : ''}`}
-                disabled={isLoading}
-                aria-describedby={errors.agreeToTerms ? 'terms-error' : undefined}
-              />
-              <label htmlFor="agreeToTerms" className="checkbox-label">
-                I agree to the{' '}
-                <a href="/terms" className="checkbox-link" target="_blank" rel="noopener noreferrer">
-                  Terms and Conditions
-                </a>{' '}
-                and{' '}
-                <a href="/privacy" className="checkbox-link" target="_blank" rel="noopener noreferrer">
-                  Privacy Policy
-                </a>
+        )}
+        
+        {/* Show form only if no success message */}
+        {!successMessage && (
+          <>
+            {/* Name field */}
+            <div className="form-group">
+              <label htmlFor="name" className="form-label">
+                Full Name *
               </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className={`input-field ${errors.name ? 'input-error' : ''}`}
+                placeholder="Enter your full name"
+                disabled={isLoading}
+                aria-describedby={errors.name ? 'name-error' : undefined}
+              />
+              {errors.name && (
+                <span id="name-error" className="error-message" role="alert">
+                  {errors.name}
+                </span>
+              )}
             </div>
-            {errors.agreeToTerms && (
-              <span id="terms-error" className="error-message" role="alert">
-                {errors.agreeToTerms}
-              </span>
+            
+            {/* Email field */}
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`input-field ${errors.email ? 'input-error' : ''}`}
+                placeholder="Enter your email"
+                disabled={isLoading}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+              />
+              {errors.email && (
+                <span id="email-error" className="error-message" role="alert">
+                  {errors.email}
+                </span>
+              )}
+            </div>
+            
+            {/* Password field */}
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">
+                Password *
+              </label>
+              <div className="password-field-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`input-field ${errors.password ? 'input-error' : ''}`}
+                  placeholder="Create a strong password"
+                  disabled={isLoading}
+                  aria-describedby={errors.password ? 'password-error' : 'password-help'}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {errors.password ? (
+                <span id="password-error" className="error-message" role="alert">
+                  {errors.password}
+                </span>
+              ) : (
+                <small id="password-help" className="help-text">
+                  Minimum 8 characters with uppercase, lowercase, and numbers
+                </small>
+              )}
+            </div>
+            
+            {/* Confirm Password field */}
+            <div className="form-group">
+              <label htmlFor="confirmPassword" className="form-label">
+                Confirm Password *
+              </label>
+              <div className="password-field-wrapper">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`input-field ${errors.confirmPassword ? 'input-error' : ''}`}
+                  placeholder="Confirm your password"
+                  disabled={isLoading}
+                  aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={isLoading}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <span id="confirmPassword-error" className="error-message" role="alert">
+                  {errors.confirmPassword}
+                </span>
+              )}
+            </div>
+            
+            {/* Phone field */}
+            <div className="form-group">
+              <label htmlFor="phone" className="form-label">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className={`input-field ${errors.phone ? 'input-error' : ''}`}
+                placeholder="+251 93 067 0088"
+                disabled={isLoading}
+                aria-describedby={errors.phone ? 'phone-error' : undefined}
+              />
+              {errors.phone && (
+                <span id="phone-error" className="error-message" role="alert">
+                  {errors.phone}
+                </span>
+              )}
+            </div>
+            
+            {/* Woreda select field */}
+            <div className="form-group">
+              <label htmlFor="woreda" className="form-label">
+                Woreda *
+              </label>
+              <div className="woreda-select-container">
+                <select
+                  id="woreda"
+                  name="woreda"
+                  value={formData.woreda}
+                  onChange={handleChange}
+                  className={`input-field select-field ${errors.woreda ? 'input-error' : ''}`}
+                  disabled={isLoading}
+                  aria-describedby={errors.woreda ? 'woreda-error' : undefined}
+                >
+                  {woredas.map(woreda => (
+                    <option 
+                      key={woreda.id} 
+                      value={woreda.id}
+                      className="select-option"
+                      disabled={woreda.id === ''}
+                    >
+                      {woreda.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="woreda-select-icon" size={16} />
+              </div>
+              {errors.woreda && (
+                <span id="woreda-error" className="error-message" role="alert">
+                  {errors.woreda}
+                </span>
+              )}
+            </div>
+            
+            {/* Membership Plan Selection */}
+            <div className="form-group">
+              <label className="form-label">
+                Membership Plan *
+              </label>
+              <div className="membership-plans">
+                {membershipPlans.map((plan) => (
+                  <label key={plan.id} className="membership-plan">
+                    <input
+                      type="radio"
+                      name="membershipPlan"
+                      value={plan.id}
+                      checked={formData.membershipPlan === plan.id}
+                      onChange={handleChange}
+                      className="membership-plan-input"
+                      disabled={isLoading}
+                    />
+                    <div className="membership-plan-content">
+                      <div className="membership-plan-header">
+                        <span className="membership-plan-name">{plan.name}</span>
+                        <span className={`membership-plan-price ${plan.price === 0 ? 'free' : 'paid'}`}>
+                          {plan.price === 0 ? 'FREE' : `ETB ${plan.price}`}
+                        </span>
+                      </div>
+                      <div className="membership-plan-description">
+                        {plan.description}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
+            {/* Payment Receipt Upload */}
+            {formData.membershipPlan !== 'basic' && (
+              <div className="form-group">
+                <label className="form-label">
+                  Payment Receipt *
+                </label>
+                <div className="receipt-upload-container">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    className="receipt-input"
+                    disabled={isLoading}
+                  />
+                  
+                  {!receiptFile ? (
+                    <div 
+                      className="receipt-upload-area"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="receipt-upload-icon" />
+                      <div className="receipt-upload-text">
+                        <div className="receipt-upload-title">Upload Payment Receipt</div>
+                        <div className="receipt-upload-subtitle">
+                          Click to upload JPG, PNG or PDF (Max 5MB)
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="receipt-file-info">
+                      <div className="receipt-file-preview">
+                        {receiptPreview ? (
+                          <img 
+                            src={receiptPreview} 
+                            alt="Receipt preview" 
+                            className="receipt-preview-image"
+                          />
+                        ) : (
+                          <FileText className="receipt-file-icon" />
+                        )}
+                      </div>
+                      <div className="receipt-file-details">
+                        <div className="receipt-file-name">{receiptFile.name}</div>
+                        <div className="receipt-file-size">
+                          {(receiptFile.size / 1024 / 1024).toFixed(2)} MB
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="receipt-remove-button"
+                        disabled={isLoading}
+                      >
+                        <X className="receipt-remove-icon" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  {errors.receipt && (
+                    <span className="error-message" role="alert">
+                      {errors.receipt}
+                    </span>
+                  )}
+                  
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <div className="upload-progress">
+                      <div className="upload-progress-bar">
+                        <div 
+                          className="upload-progress-fill"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                      <div className="upload-progress-text">
+                        Uploading... {uploadProgress}%
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Payment Instructions */}
+                <div className="payment-instructions">
+                  <p className="payment-instructions-title">
+                    💡 Make sure your receipt shows:
+                  </p>
+                  <ul className="payment-instructions-list">
+                    <li>Transaction ID/Reference</li>
+                    <li>Amount paid: ETB {membershipPlans.find(p => p.id === formData.membershipPlan)?.price}</li>
+                    <li>Date and time</li>
+                    <li>Account: 1000212203746</li>
+                  </ul>
+                </div>
+              </div>
             )}
-          </div>
-          
-          {/* Submit button */}
-          <button
-            type="submit"
-            className={`submit-button ${isLoading ? 'button-loading' : ''}`}
-            disabled={isLoading}
-            aria-busy={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span className="button-spinner"></span>
-                Processing...
-              </>
-            ) : (
-              'Register Now'
-            )}
-          </button>
-          
-          {/* Additional info */}
-          <div className="form-footer">
-            <p className="form-footer-text">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="form-footer-link">
-                Sign in here
-              </Link>
-            </p>
-            <p className="form-footer-note">
-              * Required fields
-            </p>
-          </div>
-        </>
-      )}
-    </form>
+            
+            {/* Terms and conditions checkbox */}
+            <div className="form-group">
+              <div className="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="agreeToTerms"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleChange}
+                  className={`checkbox-input ${errors.agreeToTerms ? 'checkbox-error' : ''}`}
+                  disabled={isLoading}
+                  aria-describedby={errors.agreeToTerms ? 'terms-error' : undefined}
+                />
+                <label htmlFor="agreeToTerms" className="checkbox-label">
+                  I agree to the{' '}
+                  <a href="/terms" className="checkbox-link" target="_blank" rel="noopener noreferrer">
+                    Terms and Conditions
+                  </a>{' '}
+                  and{' '}
+                  <a href="/privacy" className="checkbox-link" target="_blank" rel="noopener noreferrer">
+                    Privacy Policy
+                  </a>
+                  , and confirm that my payment receipt is authentic.
+                </label>
+              </div>
+              {errors.agreeToTerms && (
+                <span id="terms-error" className="error-message" role="alert">
+                  {errors.agreeToTerms}
+                </span>
+              )}
+            </div>
+            
+            {/* Submit button */}
+            <button
+              type="submit"
+              className={`submit-button ${isLoading ? 'button-loading' : ''}`}
+              disabled={isLoading}
+              aria-busy={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Processing...
+                </>
+              ) : (
+                'Register Now'
+              )}
+            </button>
+            
+            {/* Additional info */}
+            <div className="form-footer">
+              <p className="form-footer-text">
+                Already have an account?{' '}
+                <Link href="/auth/login" className="form-footer-link">
+                  Sign in here
+                </Link>
+              </p>
+              <p className="form-footer-note">
+                * Required fields
+              </p>
+            </div>
+          </>
+        )}
+      </form>
+    </div>
   );
 };
 

@@ -87,6 +87,166 @@ export const sendVerificationEmail = async (email, name, token) => {
 };
 
 /**
+ * Send payment verification email
+ */
+export const sendPaymentVerificationEmail = async (email, name, plan, membershipId) => {
+  try {
+    const amount = plan === 'active' ? 'ETB 500' : 'ETB 1,200';
+    const planName = plan === 'active' ? 'Active Member' : 'Premium Member';
+    
+    const mailOptions = {
+      from: `"SLMA Payment Verification" <${process.env.SMTP_FROM}>`,
+      to: email,
+      subject: `Payment Receipt Received - ${planName} Membership`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Payment Verification</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .info-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+            .warning-box { background: #fffbeb; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #fde68a; color: #92400e; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Payment Receipt Received</h1>
+            <p>SLMA Membership Registration</p>
+          </div>
+          
+          <div class="content">
+            <h2>Hello ${name},</h2>
+            <p>Thank you for submitting your payment receipt for <strong>${planName}</strong> membership.</p>
+            
+            <div class="info-box">
+              <h3 style="margin-top: 0;">Registration Details:</h3>
+              <p><strong>Membership ID:</strong> ${membershipId}</p>
+              <p><strong>Plan:</strong> ${planName}</p>
+              <p><strong>Amount:</strong> ${amount}</p>
+              <p><strong>Status:</strong> <span style="color: #f59e0b;">Payment Verification Pending</span></p>
+            </div>
+            
+            <h3>📋 Next Steps:</h3>
+            <ol style="padding-left: 20px;">
+              <li>Our team will verify your payment receipt</li>
+              <li>You'll receive an email once verification is complete</li>
+              <li>After verification, your membership will be activated</li>
+              <li>You can then login and access all member benefits</li>
+            </ol>
+            
+            <div class="warning-box">
+              <p style="margin: 0;">
+                ⏰ <strong>Verification Time:</strong> Usually within 24-48 hours
+              </p>
+            </div>
+            
+            <p>If you have any questions, please contact our membership team at <a href="mailto:membership@siltecommunity.org">membership@siltecommunity.org</a>.</p>
+            
+            <div class="footer">
+              <p style="color: #6b7280; font-size: 12px;">
+                This is an automated message. Please do not reply to this email.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hello ${name},\n\nThank you for submitting your payment receipt for ${planName} membership.\n\nMembership ID: ${membershipId}\nPlan: ${planName}\nAmount: ${amount}\nStatus: Payment Verification Pending\n\nOur team will verify your payment receipt within 24-48 hours. You'll receive another email once verification is complete.\n\nIf you have questions, contact membership@siltecommunity.org\n\nBest regards,\nSLMA Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Payment verification email sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Error sending payment verification email to ${email}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Send payment approved email
+ */
+export const sendPaymentApprovedEmail = async (email, name, membershipId) => {
+  try {
+    const mailOptions = {
+      from: `"SLMA Membership" <${process.env.SMTP_FROM}>`,
+      to: email,
+      subject: '🎉 Payment Verified - Welcome to SLMA!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Payment Approved</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .success-box { background: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+            .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+            .badge { background: #4F46E5; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Payment Verified Successfully!</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Congratulations ${name}!</h2>
+            
+            <div class="success-box">
+              <h3 style="margin-top: 0; color: #065f46;">✅ Payment Approved</h3>
+              <p>Your payment has been verified and your SLMA membership is now active!</p>
+            </div>
+            
+            <p><strong>Your Membership ID:</strong> <span class="badge">${membershipId}</span></p>
+            
+            <h3>🎯 What's Next?</h3>
+            <ul>
+              <li>Access all member benefits on the platform</li>
+              <li>Join community discussions and events</li>
+              <li>Download your digital membership card</li>
+              <li>Participate in voting and community decisions</li>
+            </ul>
+            
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/dashboard" class="button">Go to Your Dashboard</a>
+            </p>
+            
+            <p>Need help getting started? Check our <a href="${process.env.FRONTEND_URL}/help">Member Guide</a> or contact our support team.</p>
+            
+            <div class="footer">
+              <p>Welcome to the SLMA community!</p>
+              <p style="color: #6b7280; font-size: 12px;">
+                This is an automated message from Silte Ləmat Mehber Association.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Congratulations ${name}!\n\nYour payment has been verified and your SLMA membership is now active!\n\nMembership ID: ${membershipId}\n\nYou can now:\n- Access all member benefits\n- Join community discussions\n- Attend events\n- Participate in voting\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nWelcome to the SLMA community!\n\nBest regards,\nSLMA Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Payment approved email sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Error sending payment approved email to ${email}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Send password reset email
  */
 export const sendPasswordResetEmail = async (email, name, token) => {
@@ -246,5 +406,83 @@ export const testEmailService = async (toEmail) => {
   } catch (error) {
     console.error(`❌ Test email failed:`, error);
     return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Send payment rejected email
+ */
+export const sendPaymentRejectedEmail = async (email, name, membershipId, reason) => {
+  try {
+    const mailOptions = {
+      from: `"SLMA Membership" <${process.env.SMTP_FROM}>`,
+      to: email,
+      subject: 'Payment Verification Required - SLMA Membership',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Payment Issue</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .alert-box { background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444; }
+            .button { display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Payment Verification Issue</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Hello ${name},</h2>
+            
+            <div class="alert-box">
+              <h3 style="margin-top: 0; color: #b91c1c;">⚠️ Payment Receipt Issue</h3>
+              <p>We encountered an issue with your payment receipt:</p>
+              <p><strong>Reason:</strong> ${reason}</p>
+            </div>
+            
+            <p><strong>Membership ID:</strong> ${membershipId}</p>
+            
+            <h3>🔄 What to do next:</h3>
+            <ol>
+              <li>Verify your payment details match our account information</li>
+              <li>Ensure the receipt clearly shows the transaction details</li>
+              <li>Upload a new receipt or contact support for assistance</li>
+            </ol>
+            
+            <p>Please contact our membership team immediately:</p>
+            <ul>
+              <li>Email: membership@siltecommunity.org</li>
+              <li>Phone: +251 93 067 0088</li>
+              <li>Account: CBE 1000212203746 (Sofiya Yasin)</li>
+            </ul>
+            
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/contact" class="button">Contact Support</a>
+            </p>
+            
+            <div class="footer">
+              <p>We're here to help you complete your registration successfully.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hello ${name},\n\nWe encountered an issue with your payment receipt.\n\nReason: ${reason}\n\nMembership ID: ${membershipId}\n\nPlease:\n1. Verify payment details match our account\n2. Ensure receipt shows transaction details\n3. Upload new receipt or contact support\n\nContact: membership@siltecommunity.org\nPhone: +251 93 067 0088\nAccount: CBE 1000212203746\n\nBest regards,\nSLMA Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Payment rejected email sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Error sending payment rejected email to ${email}:`, error);
+    throw error;
   }
 };

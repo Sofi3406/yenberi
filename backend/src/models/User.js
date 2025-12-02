@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema(
       enum: ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'],
       default: 'worabe',
     },
+    // UPDATED: Added membershipPlan field
+    membershipPlan: {
+      type: String,
+      enum: ['basic', 'active', 'premium'],
+      default: 'active',
+    },
     membership: {
       type: {
         type: String,
@@ -45,12 +51,47 @@ const userSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ['active', 'expired', 'pending', 'cancelled'],
-        default: 'pending',
+        enum: ['active', 'expired', 'pending', 'cancelled', 'pending_payment', 'pending_verification'],
+        default: 'pending_payment',
       },
       membershipId: String,
       startDate: Date,
       endDate: Date,
+    },
+    // NEW: Payment fields
+    payment: {
+      amount: {
+        type: Number,
+        default: 0,
+      },
+      currency: {
+        type: String,
+        default: 'ETB',
+      },
+      method: {
+        type: String,
+        enum: ['cbe', 'telebirr', 'bank_transfer', 'cash', null],
+        default: null,
+      },
+      receipt: {
+        filename: String,
+        originalName: String,
+        path: String,
+        mimetype: String,
+        size: Number,
+      },
+      transactionId: String,
+      status: {
+        type: String,
+        enum: ['pending', 'verified', 'rejected', 'refunded'],
+        default: 'pending',
+      },
+      verifiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      verifiedAt: Date,
+      notes: String,
     },
     profile: {
       bio: String,
@@ -83,49 +124,42 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Pre-save middleware to fix woreda issues
+// Pre-save middleware to fix woreda and set payment info
 userSchema.pre('save', function(next) {
-  // Fix woreda for ALL documents (new and existing)
   const validWoredas = ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'];
   
-  // If woreda is empty, undefined, or invalid, set to default
+  // Fix woreda if empty or invalid
   if (!this.woreda || this.woreda.trim() === '' || !validWoredas.includes(this.woreda)) {
     this.woreda = 'worabe';
-    console.log(`✅ Fixed woreda for user ${this.email}: set to "worabe"`);
   }
   
-  next();
-});
-
-// Pre-validate middleware to prevent validation errors
-userSchema.pre('validate', function(next) {
-  // Skip woreda validation for existing documents when they're being saved
-  if (!this.isNew) {
-    // Temporarily remove the required validator for woreda when updating existing users
-    const woredaSchemaType = this.schema.path('woreda');
-    if (woredaSchemaType && woredaSchemaType.options && woredaSchemaType.options.required) {
-      // Temporarily make woreda not required for this save operation
-      woredaSchemaType.options.required = false;
-      
-      // Restore after validation
-      this.$once('save', () => {
-        woredaSchemaType.options.required = true;
-      });
+  // Set payment amount based on membership plan for new users
+  if (this.isNew) {
+    if (this.membershipPlan === 'basic') {
+      this.payment.amount = 0;
+      this.membership.status = 'active';
+      this.payment.status = 'verified';
+    } else if (this.membershipPlan === 'active') {
+      this.payment.amount = 500;
+      this.membership.status = 'pending_payment';
+      this.payment.status = 'pending';
+    } else if (this.membershipPlan === 'premium') {
+      this.payment.amount = 1200;
+      this.membership.status = 'pending_payment';
+      this.payment.status = 'pending';
     }
   }
   
   next();
 });
 
-// Generate membership ID before saving - ONLY for new users
+// Generate membership ID before saving
 userSchema.pre('save', async function(next) {
   if (this.isNew && this.role === 'member') {
     try {
       const count = await mongoose.model('User').countDocuments();
       this.membership.membershipId = `SLMA-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
     } catch (error) {
-      console.warn('⚠️ Could not generate membership ID:', error.message);
-      // Generate a fallback ID
       this.membership.membershipId = `SLMA-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
     }
   }
@@ -138,63 +172,7 @@ userSchema.index({ woreda: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ 'membership.status': 1 });
 userSchema.index({ emailVerified: 1 });
-
-// Static method to safely create a user (bypasses validation issues)
-userSchema.statics.createUser = async function(userData) {
-  try {
-    const user = new this(userData);
-    await user.save({ validateBeforeSave: false });
-    return user;
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Static method to safely update a user
-userSchema.statics.updateUser = async function(id, updateData) {
-  try {
-    const user = await this.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    
-    // Update fields
-    Object.keys(updateData).forEach(key => {
-      if (key !== 'password' && key !== 'email') { // Don't allow email/password updates here
-        user[key] = updateData[key];
-      }
-    });
-    
-    await user.save({ validateBeforeSave: false });
-    return user;
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Instance method to safely update user
-userSchema.methods.safeSave = async function() {
-  return await this.save({ validateBeforeSave: false });
-};
-
-// Method to prepare user for response (removes sensitive data)
-userSchema.methods.toSafeObject = function() {
-  const userObject = this.toObject();
-  
-  // Remove sensitive data
-  delete userObject.password;
-  delete userObject.verificationToken;
-  delete userObject.resetPasswordToken;
-  delete userObject.resetPasswordExpire;
-  delete userObject.__v;
-  
-  // Ensure woreda has a value
-  if (!userObject.woreda || userObject.woreda.trim() === '') {
-    userObject.woreda = 'worabe';
-  }
-  
-  return userObject;
-};
+userSchema.index({ 'payment.status': 1 });
 
 const User = mongoose.model('User', userSchema);
 
