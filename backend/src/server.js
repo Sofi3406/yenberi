@@ -8,10 +8,9 @@ import errorHandler from './middlewares/errorHandler.js';
 import dashboardRoutes from './routes/dashboard.js';
 import eventRoutes from './routes/events.js';
 
-
 // Import routes
 import authRoutes from './routes/auth.js';
-
+import donationRoutes from './routes/donationRoutes.js'; // ✅ NEW: Donation routes
 
 // Import email service
 import { testEmailService } from './services/emailService.js';
@@ -50,16 +49,20 @@ const corsOptions = {
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
-
 // Handle preflight requests for all routes
 app.options('*', cors(corsOptions));
 
-// Body parser middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parser middleware (Increased limit for receipt uploads)
+app.use(express.json({ limit: '20mb' })); // ✅ Increased from 10mb to 20mb
+app.use(express.urlencoded({ extended: true, limit: '20mb' })); // ✅ Increased from 10mb to 20mb
 
-// Static folder
+// Static folders
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads/donation-receipts', express.static(path.join(__dirname, '../uploads/donation-receipts'))); // ✅ NEW: Donation receipts folder
+
+// ============================================
+// ✅ EXISTING ROUTES - UNCHANGED BELOW
+// ============================================
 
 // Health check endpoint - for debugging
 app.get('/api/health', (req, res) => {
@@ -76,7 +79,14 @@ app.get('/api/health', (req, res) => {
       methods: corsOptions.methods,
     },
     emailService: process.env.SMTP_USER ? 'Configured' : 'Not configured',
-    version: '1.0.0'
+    version: '1.0.0',
+    features: { // ✅ NEW: Added features section
+      authentication: 'active',
+      donations: 'active', // ✅ NEW
+      membership: 'active',
+      events: 'active',
+      fileUpload: 'active'
+    }
   });
 });
 
@@ -149,34 +159,76 @@ app.post('/api/test-register', (req, res) => {
   });
 });
 
-// Welcome route
+// Test donation endpoint - for debugging
+app.post('/api/test-donation', (req, res) => {
+  console.log('✅ Test donation endpoint hit:', {
+    amount: req.body?.amount,
+    email: req.body?.donor?.email ? `${req.body.donor.email.substring(0, 10)}...` : 'none'
+  });
+  res.json({
+    success: true,
+    message: 'Donation test endpoint working!',
+    timestamp: new Date().toISOString(),
+    paymentDetails: {
+      cbeAccount: '1000212203746',
+      cbeName: 'SOFIYA YASIN',
+      telebirrPhone: '+251930670088',
+      bank: 'Commercial Bank of Ethiopia'
+    }
+  });
+});
+
+// Welcome route - UPDATED with donation endpoints
 app.get('/', (req, res) => {
   res.json({
     success: true,
     message: '🚀 SLMA Platform API is running...',
-    version: '1.0.0',
+    version: '1.1.0', // ✅ Updated version
     documentation: {
       health: 'GET /api/health',
-      test: 'POST /api/test-register',
-      email: 'POST /api/test-email',
+      test: {
+        email: 'POST /api/test-email',
+        register: 'POST /api/test-register',
+        donation: 'POST /api/test-donation' // ✅ NEW
+      },
       auth: 'POST /api/auth/register',
       endpoints: {
         auth: '/api/auth',
+        donations: '/api/donations', // ✅ NEW
         members: '/api/members',
         events: '/api/events',
         projects: '/api/projects',
         admin: '/api/admin',
       }
     },
+    donationPaymentDetails: { // ✅ NEW section
+      cbe: {
+        account: '1000212203746',
+        name: 'SOFIYA YASIN',
+        bank: 'Commercial Bank of Ethiopia'
+      },
+      telebirr: {
+        phone: '+251930670088',
+        name: 'SOFIYA YASIN'
+      },
+      note: 'Use your name or phone number as reference'
+    },
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   });
 });
 
-// API Routes
+// ============================================
+// ✅ API ROUTES
+// ============================================
+
+// Existing routes
 app.use('/api/auth', authRoutes);
 
-// 404 handler for undefined API routes
+// ✅ NEW: Donation routes (Added after existing routes)
+app.use('/api/donations', donationRoutes);
+
+// 404 handler for undefined API routes - UPDATED with donation endpoints
 app.use('/api/*', (req, res) => {
   console.warn(`⚠️  Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
@@ -186,12 +238,17 @@ app.use('/api/*', (req, res) => {
       'GET /api/health',
       'POST /api/test-register',
       'POST /api/test-email',
+      'POST /api/test-donation',
       'POST /api/auth/register',
       'POST /api/auth/login',
       'POST /api/auth/forgot-password',
       'GET /api/auth/verify-email/:token',
       'PUT /api/auth/reset-password/:token',
-      'GET /api/auth/me'
+      'GET /api/auth/me',
+      'POST /api/donations', // ✅ NEW
+      'POST /api/donations/:id/receipt', // ✅ NEW
+      'GET /api/donations/:identifier', // ✅ NEW
+      'GET /api/donations/stats/summary' // ✅ NEW
     ],
     suggestion: 'Check GET / for full API documentation'
   });
@@ -212,7 +269,7 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log('='.repeat(60));
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -222,10 +279,20 @@ const server = app.listen(PORT, () => {
   console.log(`   ✅ Health check: http://localhost:${PORT}/api/health`);
   console.log(`   ✅ Test endpoint: http://localhost:${PORT}/api/test-register`);
   console.log(`   ✅ Test email: http://localhost:${PORT}/api/test-email`);
+  console.log(`   ✅ Test donation: http://localhost:${PORT}/api/test-donation`);
   console.log(`   ✅ Register: http://localhost:${PORT}/api/auth/register`);
   console.log(`   ✅ Login: http://localhost:${PORT}/api/auth/login`);
   console.log(`   ✅ Forgot password: http://localhost:${PORT}/api/auth/forgot-password`);
+  console.log(`   ✅ Donations: http://localhost:${PORT}/api/donations`);
   console.log(`   ✅ Home: http://localhost:${PORT}/`);
+  console.log('='.repeat(60));
+  
+  // Display donation payment details
+  console.log('\n💰 DONATION PAYMENT DETAILS:');
+  console.log('   CBE Account: 1000212203746');
+  console.log('   Account Name: SOFIYA YASIN');
+  console.log('   TeleBirr: +251930670088');
+  console.log('   Bank: Commercial Bank of Ethiopia');
   console.log('='.repeat(60));
   
   // Display important warnings
@@ -238,6 +305,26 @@ const server = app.listen(PORT, () => {
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('super_secret_key')) {
     console.warn('⚠️  WARNING: Using default JWT secret!');
     console.warn('   Change JWT_SECRET in production for security.');
+  }
+  
+  // ✅ FIXED: Use dynamic import instead of require() in ES module
+  try {
+    const fs = await import('fs');
+    const uploadDirs = [
+      path.join(__dirname, '../uploads'),
+      path.join(__dirname, '../uploads/donation-receipts')
+    ];
+    
+    for (const dir of uploadDirs) {
+      if (!fs.existsSync(dir)) {
+        console.warn(`⚠️  WARNING: Upload directory doesn't exist: ${dir}`);
+        console.warn(`   Run: mkdir -p ${dir}`);
+      } else {
+        console.log(`✅ Upload directory exists: ${dir}`);
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️  Could not check upload directories:', error.message);
   }
 });
 

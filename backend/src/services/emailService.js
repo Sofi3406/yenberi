@@ -26,6 +26,10 @@ transporter.verify((error, success) => {
   }
 });
 
+// ============================================
+// ✅ EXISTING FUNCTIONS - UNCHANGED BELOW
+// ============================================
+
 /**
  * Send verification email to new user
  */
@@ -485,4 +489,408 @@ export const sendPaymentRejectedEmail = async (email, name, membershipId, reason
     console.error(`❌ Error sending payment rejected email to ${email}:`, error);
     throw error;
   }
+};
+
+// ============================================
+// ✅ NEW DONATION-RELATED FUNCTIONS ADDED BELOW
+// ============================================
+
+/**
+ * Send donation payment instructions
+ */
+export const sendDonationEmail = async ({ to, donorName, amount, transactionId, paymentInstructions, donationType, project }) => {
+  try {
+    const { method, steps, details } = paymentInstructions;
+    
+    const subject = `Payment Instructions for Your SLMA Donation - ${transactionId}`;
+    
+    let htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Donation Payment Instructions</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+          .instruction-box { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .warning-box { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #ffeaa7; }
+          .button { display: inline-block; background: #27ae60; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Thank You for Your Donation, ${donorName}!</h1>
+        </div>
+        
+        <div class="content">
+          <div class="info-box">
+            <h3 style="color: #27ae60; margin-top: 0;">Donation Details:</h3>
+            <p><strong>Transaction ID:</strong> ${transactionId}</p>
+            <p><strong>Amount:</strong> ETB ${amount}</p>
+            <p><strong>Type:</strong> ${donationType === 'monthly' ? 'Monthly Recurring' : 'One-time'}</p>
+            <p><strong>Project:</strong> ${project}</p>
+            <p><strong>Payment Method:</strong> ${method.toUpperCase()}</p>
+          </div>
+          
+          <div class="instruction-box">
+            <h3 style="color: #1565c0; margin-top: 0;">Payment Instructions (${method}):</h3>
+            <ol style="margin-left: 20px;">
+              ${steps.map(step => `<li>${step}</li>`).join('')}
+            </ol>
+          </div>
+          
+          <div class="warning-box">
+            <h4 style="color: #856404; margin-top: 0;">Important Details:</h4>
+            ${Object.entries(details).map(([key, value]) => `
+              <p><strong>${key.replace(/([A-Z])/g, ' $1').toUpperCase()}:</strong> ${value}</p>
+            `).join('')}
+            <p><strong>REFERENCE:</strong> Use "${donorName.substring(0, 20)}" or your phone number</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+            <p><strong>After completing payment, please upload your receipt:</strong></p>
+            <a href="${process.env.FRONTEND_URL}/donate/upload/${transactionId}" 
+               class="button">
+              📤 Upload Receipt
+            </a>
+          </div>
+          
+          <div class="footer">
+            <p><strong>Need help?</strong> Contact our donation team:</p>
+            <p>📧 Email: donations@siltecommunity.org</p>
+            <p>📞 Phone: +251 93 067 0088</p>
+            <p style="font-size: 0.9em; margin-top: 20px; color: #6b7280;">
+              Silte Language & Multicultural Association<br>
+              Preserving Heritage, Empowering Future
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const mailOptions = {
+      from: `"SLMA Donations" <${process.env.SMTP_FROM}>`,
+      to,
+      subject,
+      html: htmlContent,
+      text: `
+Dear ${donorName},
+
+Thank you for your donation to Silte Ləmat Mehber!
+
+DONATION DETAILS:
+Transaction ID: ${transactionId}
+Amount: ETB ${amount}
+Type: ${donationType === 'monthly' ? 'Monthly Recurring' : 'One-time'}
+Project: ${project}
+Payment Method: ${method.toUpperCase()}
+
+PAYMENT INSTRUCTIONS (${method.toUpperCase()}):
+${steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
+
+IMPORTANT DETAILS:
+${Object.entries(details).map(([key, value]) => `${key.toUpperCase()}: ${value}`).join('\n')}
+REFERENCE: Use "${donorName.substring(0, 20)}" or your phone number
+
+After payment, upload your receipt at:
+${process.env.FRONTEND_URL}/donate/upload/${transactionId}
+
+Need help? Contact: donations@siltecommunity.org or call +251 93 067 0088
+
+Thank you for supporting our community!
+Silte Language & Multicultural Association
+`
+    };
+    
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Donation email sent to ${to}: ${result.messageId}`);
+    return { success: true, messageId: result.messageId };
+    
+  } catch (error) {
+    console.error('❌ Failed to send donation email:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send receipt verification status email for donations
+ */
+export const sendReceiptVerificationEmail = async ({ to, donorName, amount, status, transactionId, notes }) => {
+  try {
+    const isVerified = status === 'verified';
+    const subject = isVerified 
+      ? `Receipt Verified - Thank You! (${transactionId})`
+      : `Receipt Verification Update (${transactionId})`;
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Receipt Verification</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, ${isVerified ? '#10b981' : '#ef4444'} 0%, ${isVerified ? '#059669' : '#dc2626'} 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .status-box { background: ${isVerified ? '#d1fae5' : '#fee2e2'}; color: ${isVerified ? '#065f46' : '#b91c1c'}; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${isVerified ? '#10b981' : '#ef4444'}; }
+          .info-box { background: #f8fafc; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${isVerified ? '✅ Receipt Verified Successfully!' : '⚠️ Receipt Verification Update'}</h1>
+        </div>
+        
+        <div class="content">
+          <p>Dear ${donorName},</p>
+          
+          <div class="status-box">
+            <h3 style="margin-top: 0;">${isVerified ? 'Your donation receipt has been verified!' : 'Receipt Verification Issue'}</h3>
+            ${isVerified ? `
+              <p>Thank you for supporting the Silte community. Your contribution of <strong>ETB ${amount}</strong> 
+              has been confirmed and recorded.</p>
+            ` : `
+              <p>We encountered an issue while verifying your receipt for donation <strong>ETB ${amount}</strong>.</p>
+              ${notes ? `<p><strong>Reason:</strong> ${notes}</p>` : ''}
+            `}
+          </div>
+          
+          <div class="info-box">
+            <h4 style="margin-top: 0;">Transaction Summary:</h4>
+            <p><strong>Transaction ID:</strong> ${transactionId}</p>
+            <p><strong>Amount:</strong> ETB ${amount}</p>
+            <p><strong>Status:</strong> ${isVerified ? 'Verified ✓' : 'Needs Attention'}</p>
+            <p><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</p>
+          </div>
+          
+          ${isVerified ? `
+            <p>You will receive an official tax-deductible receipt within 7-10 business days.</p>
+          ` : `
+            <p><strong>What to do next:</strong></p>
+            <ol>
+              <li>Verify your payment details match our account information</li>
+              <li>Ensure the receipt clearly shows the transaction details</li>
+              <li>Upload a new receipt or contact support for assistance</li>
+            </ol>
+            <p><strong>Our Payment Details:</strong></p>
+            <ul>
+              <li>CBE Account: 1000212203746 (Sofiya Yasin)</li>
+              <li>TeleBirr: +251 93 067 0088 (Sofiya Yasin)</li>
+            </ul>
+          `}
+          
+          <div class="footer">
+            <p><strong>For any questions:</strong></p>
+            <p>📧 Email: donations@siltecommunity.org</p>
+            <p>📞 Phone: +251 93 067 0088</p>
+            <p>🕒 Hours: Mon-Fri, 9AM-5PM EAT</p>
+            
+            <p style="font-size: 0.9em; margin-top: 20px; color: #6b7280;">
+              <em>Your support makes a difference in preserving Silte heritage.</em><br>
+              Silte Language & Multicultural Association
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const mailOptions = {
+      from: `"SLMA Donations" <${process.env.SMTP_FROM}>`,
+      to,
+      subject,
+      html: htmlContent,
+      text: `
+Dear ${donorName},
+
+${isVerified ? 
+`✅ Your donation receipt has been verified!
+
+Thank you for supporting the Silte community. Your contribution of ETB ${amount} has been confirmed and recorded.
+
+Transaction ID: ${transactionId}
+Amount: ETB ${amount}
+Status: Verified
+Date: ${new Date().toLocaleDateString()}
+
+You will receive an official tax-deductible receipt within 7-10 business days.` : 
+`⚠️ Receipt Verification Issue
+
+We encountered an issue while verifying your receipt for donation ETB ${amount}.
+
+Transaction ID: ${transactionId}
+Amount: ETB ${amount}
+Status: Needs Attention
+${notes ? `Reason: ${notes}\n` : ''}
+
+What to do next:
+1. Verify your payment details match our account
+2. Ensure receipt shows transaction details
+3. Upload a new receipt or contact support
+
+Our Payment Details:
+- CBE Account: 1000212203746 (Sofiya Yasin)
+- TeleBirr: +251 93 067 0088 (Sofiya Yasin)`
+}
+
+For questions, contact:
+Email: donations@siltecommunity.org
+Phone: +251 93 067 0088
+
+Thank you for your support!
+Silte Language & Multicultural Association
+`
+    };
+    
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Donation verification email sent to ${to}: ${result.messageId}`);
+    return { success: true, messageId: result.messageId };
+    
+  } catch (error) {
+    console.error('❌ Failed to send donation verification email:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send donation receipt confirmation (when user uploads receipt)
+ */
+export const sendDonationReceiptConfirmation = async ({ to, donorName, amount, transactionId }) => {
+  try {
+    const subject = `Donation Receipt Received - ${transactionId}`;
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Receipt Confirmation</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .confirmation-box { background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6; }
+          .info-box { background: #f8fafc; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Receipt Received Successfully!</h1>
+        </div>
+        
+        <div class="content">
+          <p>Dear ${donorName},</p>
+          
+          <div class="confirmation-box">
+            <h3 style="color: #3b82f6; margin-top: 0;">✅ Receipt Upload Confirmed</h3>
+            <p>We have successfully received your payment receipt for donation <strong>ETB ${amount}</strong>.</p>
+          </div>
+          
+          <div class="info-box">
+            <h4 style="margin-top: 0;">Transaction Details:</h4>
+            <p><strong>Transaction ID:</strong> ${transactionId}</p>
+            <p><strong>Amount:</strong> ETB ${amount}</p>
+            <p><strong>Status:</strong> Under Review</p>
+            <p><strong>Receipt Received:</strong> ${new Date().toLocaleDateString()}</p>
+          </div>
+          
+          <h4>📋 Next Steps:</h4>
+          <ol>
+            <li>Our team will verify your payment receipt</li>
+            <li>Verification usually takes 24-48 hours</li>
+            <li>You'll receive another email once verification is complete</li>
+            <li>After verification, your donation will be officially recorded</li>
+          </ol>
+          
+          <p><strong>Note:</strong> If you have any questions about your payment, please contact us immediately.</p>
+          
+          <div class="footer">
+            <p><strong>Need to contact us?</strong></p>
+            <p>📧 Email: donations@siltecommunity.org</p>
+            <p>📞 Phone: +251 93 067 0088</p>
+            <p style="font-size: 0.9em; margin-top: 20px; color: #6b7280;">
+              Thank you for your patience and support!<br>
+              Silte Language & Multicultural Association
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const mailOptions = {
+      from: `"SLMA Donations" <${process.env.SMTP_FROM}>`,
+      to,
+      subject,
+      html: htmlContent,
+      text: `
+Dear ${donorName},
+
+✅ We have successfully received your payment receipt for donation ETB ${amount}.
+
+TRANSACTION DETAILS:
+Transaction ID: ${transactionId}
+Amount: ETB ${amount}
+Status: Under Review
+Receipt Received: ${new Date().toLocaleDateString()}
+
+NEXT STEPS:
+1. Our team will verify your payment receipt
+2. Verification usually takes 24-48 hours
+3. You'll receive another email once verification is complete
+4. After verification, your donation will be officially recorded
+
+If you have any questions about your payment, please contact us immediately.
+
+Contact us:
+Email: donations@siltecommunity.org
+Phone: +251 93 067 0088
+
+Thank you for your patience and support!
+Silte Language & Multicultural Association
+`
+    };
+    
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Donation receipt confirmation sent to ${to}: ${result.messageId}`);
+    return { success: true, messageId: result.messageId };
+    
+  } catch (error) {
+    console.error('❌ Failed to send donation receipt confirmation:', error);
+    throw error;
+  }
+};
+
+// ============================================
+// ✅ EXPORT ALL FUNCTIONS
+// ============================================
+
+export default {
+  // Original functions
+  sendVerificationEmail,
+  sendPaymentVerificationEmail,
+  sendPaymentApprovedEmail,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+  testEmailService,
+  sendPaymentRejectedEmail,
+  
+  // New donation functions
+  sendDonationEmail,
+  sendReceiptVerificationEmail,
+  sendDonationReceiptConfirmation
 };
