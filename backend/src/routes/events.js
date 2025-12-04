@@ -1,32 +1,97 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import Event from '../models/Event.js'; 
+import Event from '../models/Event.js';
 import { protect as authenticate, authorize } from '../middlewares/auth.js';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import { body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
-// GET all events with optional filters
+// Configure multer for file upload
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper function to upload image to Cloudinary
+const uploadToCloudinary = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.v2.uploader.upload_stream(
+      {
+        folder: 'silte-events',
+        transformation: [
+          { width: 800, height: 450, crop: 'fill' },
+          { quality: 'auto' },
+          { fetch_format: 'auto' }
+        ]
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    ).end(fileBuffer);
+  });
+};
+
+// ============================
+// PUBLIC ROUTES
+// ============================
+
+// GET all events with enhanced filters
 router.get('/', async (req, res) => {
   try {
     const {
       type,
+      category,
       status,
       organizer,
       startDate,
       endDate,
+      isIslamicEvent,
       page = 1,
-      limit = 10,
+      limit = 12,
       sortBy = 'date',
-      order = 'asc'
+      order = 'asc',
+      search,
+      upcomingOnly = false
     } = req.query;
 
-    const query = {};
+    const query = { isActive: true };
 
     // Apply filters
     if (type) query.type = type;
+    if (category) query.category = category;
     if (status) query.status = status;
     if (organizer && mongoose.Types.ObjectId.isValid(organizer)) {
       query.organizer = organizer;
+    }
+    if (isIslamicEvent !== undefined) {
+      query.isIslamicEvent = isIslamicEvent === 'true';
+    }
+
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } },
+        { shortDescription: { $regex: search, $options: 'i' } }
+      ];
     }
 
     // Date range filter
@@ -36,6 +101,12 @@ router.get('/', async (req, res) => {
       if (endDate) query.date.$lte = new Date(endDate);
     }
 
+    // Upcoming events only
+    if (upcomingOnly === 'true') {
+      query.date = { $gte: new Date() };
+      query.status = 'upcoming';
+    }
+
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
@@ -43,19 +114,33 @@ router.get('/', async (req, res) => {
     const sortOrder = order === 'desc' ? -1 : 1;
     const sortOptions = { [sortBy]: sortOrder };
 
-    // Execute query
+    // Execute query with lean for better performance
     const events = await Event.find(query)
-      .populate('organizer', 'name email')
+      .populate('organizer', 'name email profile.photo')
       .populate('attendees', 'name email')
       .sort(sortOptions)
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
 
     const total = await Event.countDocuments(query);
 
+    // Format events for frontend
+    const formattedEvents = events.map(event => ({
+      ...event,
+      attendeesCount: event.attendees ? event.attendees.length : 0,
+      isFull: event.maxAttendees > 0 && event.attendees.length >= event.maxAttendees,
+      isRegistrationOpen: () => {
+        if (event.status !== 'upcoming') return false;
+        if (event.registrationDeadline && new Date() > event.registrationDeadline) return false;
+        if (event.maxAttendees > 0 && event.attendees.length >= event.maxAttendees) return false;
+        return true;
+      }
+    }));
+
     res.json({
       success: true,
-      data: events,
+      data: formattedEvents,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -68,7 +153,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching events',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -77,10 +162,10 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate('organizer', 'name email')
+      .populate('organizer', 'name email profile.photo')
       .populate('attendees', 'name email');
 
-    if (!event) {
+    if (!event || !event.isActive) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -101,123 +186,488 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST create new event (protected)
-router.post('/', authenticate, async (req, res) => {
+// GET featured events (for homepage/carousel)
+router.get('/featured/events', async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      date,
-      location,
-      type,
-      maxAttendees,
-      image,
-      registrationDeadline
-    } = req.body;
-
-    // Validate required fields
-    if (!title || !description || !date || !location) {
-      return res.status(400).json({
-        success: false,
-        message: 'Title, description, date, and location are required'
-      });
-    }
-
-    const event = new Event({
-      title,
-      description,
-      date: new Date(date),
-      location,
-      type: type || 'cultural',
-      organizer: req.user.id, // Assuming user ID from auth middleware
-      maxAttendees: maxAttendees || 0,
-      image,
-      registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
-      status: 'upcoming'
-    });
-
-    await event.save();
-
-    const populatedEvent = await Event.findById(event._id)
-      .populate('organizer', 'name email');
-
-    res.status(201).json({
-      success: true,
-      message: 'Event created successfully',
-      data: populatedEvent
-    });
-  } catch (error) {
-    console.error('Error creating event:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating event',
-      error: error.message
-    });
-  }
-});
-
-// PUT update event (protected - organizer only)
-router.put('/:id', authenticate, async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-
-    if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: 'Event not found'
-      });
-    }
-
-    // Check if user is the organizer
-    if (event.organizer.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this event'
-      });
-    }
-
-    // Update allowed fields
-    const updates = {};
-    const allowedUpdates = [
-      'title', 'description', 'date', 'location', 'type',
-      'maxAttendees', 'image', 'registrationDeadline', 'status'
-    ];
-
-    allowedUpdates.forEach(field => {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    });
-
-    // Special handling for dates
-    if (updates.date) updates.date = new Date(updates.date);
-    if (updates.registrationDeadline) {
-      updates.registrationDeadline = new Date(updates.registrationDeadline);
-    }
-
-    const updatedEvent = await Event.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true, runValidators: true }
-    ).populate('organizer', 'name email')
-     .populate('attendees', 'name email');
+    const events = await Event.find({
+      isActive: true,
+      status: 'upcoming',
+      date: { $gte: new Date() }
+    })
+    .sort({ date: 1, createdAt: -1 })
+    .limit(6)
+    .select('title shortDescription date time location category image isIslamicEvent')
+    .populate('organizer', 'name');
 
     res.json({
       success: true,
-      message: 'Event updated successfully',
-      data: updatedEvent
+      data: events
     });
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('Error fetching featured events:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating event',
+      message: 'Error fetching featured events'
+    });
+  }
+});
+
+// GET Silte/Islamic events
+router.get('/category/islamic', async (req, res) => {
+  try {
+    const events = await Event.find({
+      isActive: true,
+      isIslamicEvent: true,
+      status: 'upcoming',
+      date: { $gte: new Date() }
+    })
+    .populate('organizer', 'name email profile.photo')
+    .sort({ date: 1 })
+    .limit(20);
+
+    res.json({
+      success: true,
+      data: events
+    });
+  } catch (error) {
+    console.error('Error fetching Islamic events:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching Islamic events'
+    });
+  }
+});
+
+// GET events by category
+router.get('/category/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+    const { page = 1, limit = 12 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const query = {
+      isActive: true,
+      category: category,
+      date: { $gte: new Date() }
+    };
+
+    const events = await Event.find(query)
+      .populate('organizer', 'name email')
+      .sort({ date: 1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Event.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: events,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching category events:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching category events'
+    });
+  }
+});
+
+// GET event statistics
+router.get('/statistics/summary', async (req, res) => {
+  try {
+    const totalEvents = await Event.countDocuments({ isActive: true });
+    const upcomingEvents = await Event.countDocuments({
+      isActive: true,
+      status: 'upcoming',
+      date: { $gte: new Date() }
+    });
+    const islamicEvents = await Event.countDocuments({
+      isActive: true,
+      isIslamicEvent: true,
+      status: 'upcoming'
+    });
+
+    // Events by category
+    const eventsByCategory = await Event.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Events by month for current year
+    const currentYear = new Date().getFullYear();
+    const eventsByMonth = await Event.aggregate([
+      {
+        $match: {
+          isActive: true,
+          date: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lte: new Date(`${currentYear}-12-31`)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: '$date' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id': 1 } }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalEvents,
+        upcomingEvents,
+        islamicEvents,
+        eventsByCategory,
+        eventsByMonth
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching statistics'
+    });
+  }
+});
+
+// GET calendar events for specific month/year
+router.get('/calendar/:year/:month', async (req, res) => {
+  try {
+    const { year, month } = req.params;
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const events = await Event.find({
+      isActive: true,
+      date: { $gte: startDate, $lte: endDate }
+    })
+    .select('title date endDate time location category status isIslamicEvent')
+    .sort({ date: 1 });
+
+    res.json({
+      success: true,
+      data: events
+    });
+  } catch (error) {
+    console.error('Error fetching calendar events:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching calendar events'
+    });
+  }
+});
+
+// GET events by organizer
+router.get('/organizer/:organizerId', async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(organizerId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid organizer ID'
+      });
+    }
+
+    const events = await Event.find({ 
+      organizer: organizerId,
+      isActive: true 
+    })
+      .populate('organizer', 'name email')
+      .populate('attendees', 'name email')
+      .sort({ date: 1 });
+
+    res.json({
+      success: true,
+      data: events
+    });
+  } catch (error) {
+    console.error('Error fetching organizer events:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching organizer events',
       error: error.message
     });
   }
 });
 
-// DELETE event (protected - organizer or admin)
+// GET upcoming events
+router.get('/upcoming/events', async (req, res) => {
+  try {
+    const events = await Event.find({
+      status: 'upcoming',
+      date: { $gte: new Date() },
+      isActive: true
+    })
+    .populate('organizer', 'name email')
+    .sort({ date: 1 })
+    .limit(10);
+
+    res.json({
+      success: true,
+      data: events
+    });
+  } catch (error) {
+    console.error('Error fetching upcoming events:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching upcoming events',
+      error: error.message
+    });
+  }
+});
+
+// ============================
+// PROTECTED ROUTES (Authenticated Users)
+// ============================
+
+// POST create new event with image upload
+router.post('/', 
+  authenticate,
+  upload.single('image'),
+  [
+    body('title').trim().notEmpty().withMessage('Title is required'),
+    body('description').trim().notEmpty().withMessage('Description is required'),
+    body('date').isISO8601().withMessage('Valid date is required'),
+    body('location').trim().notEmpty().withMessage('Location is required'),
+    body('category').isIn(['cultural', 'educational', 'community', 'sports', 'youth', 'religious'])
+      .withMessage('Invalid category'),
+  ],
+  async (req, res) => {
+    try {
+      // Validate input
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+
+      const {
+        title,
+        description,
+        date,
+        endDate,
+        location,
+        address,
+        type,
+        category,
+        maxAttendees,
+        time,
+        isIslamicEvent,
+        prayerTiming,
+        suitableFor,
+        registrationRequired,
+        registrationUrl,
+        registrationDeadline
+      } = req.body;
+
+      let imageUrl = '';
+      let imagePublicId = '';
+
+      // Handle image upload
+      if (req.file) {
+        try {
+          const uploadResult = await uploadToCloudinary(req.file.buffer);
+          imageUrl = uploadResult.secure_url;
+          imagePublicId = uploadResult.public_id;
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload image'
+          });
+        }
+      } else {
+        // Set default image based on category/Islamic status
+        const defaultImages = {
+          cultural: 'https://images.unsplash.com/photo-1561484930-998b6a7b22e8?q=80&w=800&auto=format&fit=crop',
+          religious: 'https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=800&auto=format&fit=crop',
+          educational: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=800&auto=format&fit=crop',
+          sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=800&auto=format&fit=crop',
+          community: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?q=80&w=800&auto=format&fit=crop',
+          youth: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop'
+        };
+        
+        imageUrl = defaultImages[category] || defaultImages.cultural;
+      }
+
+      // Parse suitableFor if it's a string
+      let suitableForArray = ['families'];
+      if (suitableFor) {
+        if (typeof suitableFor === 'string') {
+          suitableForArray = suitableFor.split(',').map(item => item.trim());
+        } else if (Array.isArray(suitableFor)) {
+          suitableForArray = suitableFor;
+        }
+      }
+
+      const event = new Event({
+        title,
+        description,
+        shortDescription: description.length > 150 
+          ? description.substring(0, 147) + '...' 
+          : description,
+        date: new Date(date),
+        endDate: endDate ? new Date(endDate) : null,
+        location,
+        address: address || location,
+        type: type || 'cultural',
+        category: category || 'cultural',
+        organizer: req.user.id,
+        maxAttendees: maxAttendees || 0,
+        image: imageUrl,
+        imagePublicId,
+        time: time || '10:00 AM',
+        isIslamicEvent: isIslamicEvent === 'true' || isIslamicEvent === true,
+        prayerTiming,
+        suitableFor: suitableForArray,
+        registrationRequired: registrationRequired === 'true' || registrationRequired === true,
+        registrationUrl,
+        registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
+        status: 'upcoming'
+      });
+
+      await event.save();
+
+      const populatedEvent = await Event.findById(event._id)
+        .populate('organizer', 'name email profile.photo');
+
+      res.status(201).json({
+        success: true,
+        message: 'Event created successfully',
+        data: populatedEvent
+      });
+    } catch (error) {
+      console.error('Error creating event:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating event',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+);
+
+// PUT update event with image upload
+router.put('/:id', 
+  authenticate,
+  upload.single('image'),
+  async (req, res) => {
+    try {
+      const event = await Event.findById(req.params.id);
+
+      if (!event) {
+        return res.status(404).json({
+          success: false,
+          message: 'Event not found'
+        });
+      }
+
+      // Check if user is the organizer or admin
+      if (event.organizer.toString() !== req.user.id && req.user.role !== 'super_admin' && req.user.role !== 'woreda_admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to update this event'
+        });
+      }
+
+      // Handle image update if new image provided
+      if (req.file) {
+        // Delete old image from Cloudinary if exists
+        if (event.imagePublicId) {
+          try {
+            await cloudinary.v2.uploader.destroy(event.imagePublicId);
+          } catch (cloudinaryError) {
+            console.warn('Failed to delete old image:', cloudinaryError);
+          }
+        }
+
+        // Upload new image
+        try {
+          const uploadResult = await uploadToCloudinary(req.file.buffer);
+          req.body.image = uploadResult.secure_url;
+          req.body.imagePublicId = uploadResult.public_id;
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload new image'
+          });
+        }
+      }
+
+      // Parse suitableFor if it's a string
+      if (req.body.suitableFor && typeof req.body.suitableFor === 'string') {
+        req.body.suitableFor = req.body.suitableFor.split(',').map(item => item.trim());
+      }
+
+      // Update allowed fields
+      const updates = {};
+      const allowedUpdates = [
+        'title', 'description', 'shortDescription', 'date', 'endDate',
+        'location', 'address', 'type', 'category', 'maxAttendees',
+        'image', 'imagePublicId', 'time', 'isIslamicEvent', 'prayerTiming',
+        'suitableFor', 'registrationRequired', 'registrationUrl',
+        'registrationDeadline', 'status', 'adminNotes'
+      ];
+
+      allowedUpdates.forEach(field => {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      });
+
+      // Special handling for dates
+      if (updates.date) updates.date = new Date(updates.date);
+      if (updates.endDate) updates.endDate = new Date(updates.endDate);
+      if (updates.registrationDeadline) {
+        updates.registrationDeadline = new Date(updates.registrationDeadline);
+      }
+
+      // Convert boolean strings to booleans
+      if (updates.isIslamicEvent !== undefined) {
+        updates.isIslamicEvent = updates.isIslamicEvent === 'true' || updates.isIslamicEvent === true;
+      }
+      if (updates.registrationRequired !== undefined) {
+        updates.registrationRequired = updates.registrationRequired === 'true' || updates.registrationRequired === true;
+      }
+
+      const updatedEvent = await Event.findByIdAndUpdate(
+        req.params.id,
+        updates,
+        { new: true, runValidators: true }
+      ).populate('organizer', 'name email profile.photo')
+       .populate('attendees', 'name email');
+
+      res.json({
+        success: true,
+        message: 'Event updated successfully',
+        data: updatedEvent
+      });
+    } catch (error) {
+      console.error('Error updating event:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating event',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+);
+
+// DELETE event (soft delete - set isActive to false)
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -230,14 +680,17 @@ router.delete('/:id', authenticate, async (req, res) => {
     }
 
     // Check if user is organizer or admin
-    if (event.organizer.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (event.organizer.toString() !== req.user.id && req.user.role !== 'super_admin' && req.user.role !== 'woreda_admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this event'
       });
     }
 
-    await Event.findByIdAndDelete(req.params.id);
+    // Soft delete by setting isActive to false
+    event.isActive = false;
+    event.updatedAt = new Date();
+    await event.save();
 
     res.json({
       success: true,
@@ -247,8 +700,7 @@ router.delete('/:id', authenticate, async (req, res) => {
     console.error('Error deleting event:', error);
     res.status(500).json({
       success: false,
-      message: 'Error deleting event',
-      error: error.message
+      message: 'Error deleting event'
     });
   }
 });
@@ -258,7 +710,7 @@ router.post('/:id/register', authenticate, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
-    if (!event) {
+    if (!event || !event.isActive) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -325,7 +777,7 @@ router.delete('/:id/unregister', authenticate, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
-    if (!event) {
+    if (!event || !event.isActive) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -360,58 +812,256 @@ router.delete('/:id/unregister', authenticate, async (req, res) => {
   }
 });
 
-// GET events by organizer
-router.get('/organizer/:organizerId', async (req, res) => {
+// ============================
+// ADMIN SPECIFIC ROUTES
+// ============================
+
+// GET all events for admin dashboard (including inactive)
+router.get('/admin/all', authenticate, authorize('super_admin', 'woreda_admin'), async (req, res) => {
   try {
-    const { organizerId } = req.params;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      category,
+      status,
+      isActive = true,
+      woreda
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build query
+    const query = {};
     
-    if (!mongoose.Types.ObjectId.isValid(organizerId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid organizer ID'
-      });
+    // Apply filters
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (category) query.category = category;
+    if (status) query.status = status;
+    if (isActive !== undefined) query.isActive = isActive === 'true';
+    
+    // Filter by woreda if user is woreda_admin
+    if (req.user.role === 'woreda_admin' && woreda) {
+      // First get all users from this woreda
+      const User = mongoose.model('User');
+      const woredaUsers = await User.find({ woreda: woreda }).select('_id');
+      const userIds = woredaUsers.map(user => user._id);
+      query.organizer = { $in: userIds };
     }
 
-    const events = await Event.find({ organizer: organizerId })
-      .populate('organizer', 'name email')
-      .populate('attendees', 'name email')
-      .sort({ date: 1 });
+    const events = await Event.find(query)
+      .populate({
+        path: 'organizer',
+        select: 'name email woreda role',
+        match: req.user.role === 'woreda_admin' ? { woreda: req.user.woreda } : {}
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Filter out events without organizer (for woreda_admin)
+    const filteredEvents = req.user.role === 'woreda_admin' 
+      ? events.filter(event => event.organizer)
+      : events;
+
+    const total = await Event.countDocuments(query);
 
     res.json({
       success: true,
-      data: events
+      data: filteredEvents,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
     });
   } catch (error) {
-    console.error('Error fetching organizer events:', error);
+    console.error('Error fetching admin events:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching organizer events',
-      error: error.message
+      message: 'Error fetching admin events'
     });
   }
 });
 
-// GET upcoming events
-router.get('/upcoming/events', async (req, res) => {
+// GET admin dashboard statistics
+router.get('/admin/dashboard-stats', authenticate, authorize('super_admin', 'woreda_admin'), async (req, res) => {
   try {
-    const events = await Event.find({
+    const User = mongoose.model('User');
+    let query = { isActive: true };
+    
+    // For woreda_admin, only count events from their woreda
+    if (req.user.role === 'woreda_admin') {
+      const woredaUsers = await User.find({ woreda: req.user.woreda }).select('_id');
+      const userIds = woredaUsers.map(user => user._id);
+      query.organizer = { $in: userIds };
+    }
+
+    // Total events
+    const totalEvents = await Event.countDocuments(query);
+    
+    // Upcoming events
+    const upcomingEvents = await Event.countDocuments({
+      ...query,
       status: 'upcoming',
       date: { $gte: new Date() }
-    })
-    .populate('organizer', 'name email')
-    .sort({ date: 1 })
-    .limit(10);
+    });
+    
+    // Events by category
+    const eventsByCategory = await Event.aggregate([
+      { $match: query },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    
+    // Events by status
+    const eventsByStatus = await Event.aggregate([
+      { $match: query },
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    
+    // Recent events (last 7 days)
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const recentEvents = await Event.countDocuments({
+      ...query,
+      createdAt: { $gte: oneWeekAgo }
+    });
 
     res.json({
       success: true,
-      data: events
+      data: {
+        totalEvents,
+        upcomingEvents,
+        eventsByCategory,
+        eventsByStatus,
+        recentEvents
+      }
     });
   } catch (error) {
-    console.error('Error fetching upcoming events:', error);
+    console.error('Error fetching dashboard stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching upcoming events',
-      error: error.message
+      message: 'Error fetching dashboard statistics'
+    });
+  }
+});
+
+// POST admin bulk actions
+router.post('/admin/bulk-actions', authenticate, authorize('super_admin'), async (req, res) => {
+  try {
+    const { action, eventIds } = req.body;
+
+    if (!action || !eventIds || !Array.isArray(eventIds)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Action and eventIds array are required'
+      });
+    }
+
+    let result;
+    switch (action) {
+      case 'activate':
+        result = await Event.updateMany(
+          { _id: { $in: eventIds } },
+          { $set: { isActive: true, updatedAt: new Date() } }
+        );
+        break;
+      case 'deactivate':
+        result = await Event.updateMany(
+          { _id: { $in: eventIds } },
+          { $set: { isActive: false, updatedAt: new Date() } }
+        );
+        break;
+      case 'delete':
+        // Hard delete - remove images from Cloudinary first
+        const events = await Event.find({ _id: { $in: eventIds } });
+        for (const event of events) {
+          if (event.imagePublicId) {
+            try {
+              await cloudinary.v2.uploader.destroy(event.imagePublicId);
+            } catch (cloudinaryError) {
+              console.warn('Failed to delete image:', cloudinaryError);
+            }
+          }
+        }
+        result = await Event.deleteMany({ _id: { $in: eventIds } });
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action'
+        });
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully performed ${action} on ${result.modifiedCount || result.deletedCount} events`
+    });
+  } catch (error) {
+    console.error('Error performing bulk action:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error performing bulk action'
+    });
+  }
+});
+
+// GET events count by month for chart
+router.get('/admin/events-by-month', authenticate, authorize('super_admin', 'woreda_admin'), async (req, res) => {
+  try {
+    const User = mongoose.model('User');
+    let matchQuery = { isActive: true };
+    
+    // For woreda_admin, only count events from their woreda
+    if (req.user.role === 'woreda_admin') {
+      const woredaUsers = await User.find({ woreda: req.user.woreda }).select('_id');
+      const userIds = woredaUsers.map(user => user._id);
+      matchQuery.organizer = { $in: userIds };
+    }
+
+    const eventsByMonth = await Event.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { $month: '$date' },
+          count: { $sum: 1 },
+          categories: {
+            $push: '$category'
+          }
+        }
+      },
+      { $sort: { '_id': 1 } }
+    ]);
+
+    // Format for chart
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formattedData = monthNames.map((month, index) => {
+      const monthData = eventsByMonth.find(item => item._id === index + 1);
+      return {
+        month,
+        count: monthData ? monthData.count : 0
+      };
+    });
+
+    res.json({
+      success: true,
+      data: formattedData
+    });
+  } catch (error) {
+    console.error('Error fetching events by month:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching events by month'
     });
   }
 });

@@ -5,12 +5,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorHandler.js';
-import dashboardRoutes from './routes/dashboard.js';
-import eventRoutes from './routes/events.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
-import donationRoutes from './routes/donationRoutes.js'; // ✅ NEW: Donation routes
+import donationRoutes from './routes/donationRoutes.js';
+import eventRoutes from './routes/events.js'; // ✅ Event routes (includes admin endpoints)
 
 // Import email service
 import { testEmailService } from './services/emailService.js';
@@ -52,19 +51,19 @@ app.use(cors(corsOptions));
 // Handle preflight requests for all routes
 app.options('*', cors(corsOptions));
 
-// Body parser middleware (Increased limit for receipt uploads)
-app.use(express.json({ limit: '20mb' })); // ✅ Increased from 10mb to 20mb
-app.use(express.urlencoded({ extended: true, limit: '20mb' })); // ✅ Increased from 10mb to 20mb
+// Body parser middleware
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Static folders
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use('/uploads/donation-receipts', express.static(path.join(__dirname, '../uploads/donation-receipts'))); // ✅ NEW: Donation receipts folder
+app.use('/uploads/donation-receipts', express.static(path.join(__dirname, '../uploads/donation-receipts')));
+app.use('/uploads/event-images', express.static(path.join(__dirname, '../uploads/event-images')));
 
 // ============================================
-// ✅ EXISTING ROUTES - UNCHANGED BELOW
+// ✅ HEALTH CHECK ENDPOINT
 // ============================================
 
-// Health check endpoint - for debugging
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -74,21 +73,20 @@ app.get('/api/health', (req, res) => {
     frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
     backendUrl: `http://localhost:${process.env.PORT || 5000}`,
     database: 'Connected',
-    cors: {
-      origin: corsOptions.origin,
-      methods: corsOptions.methods,
-    },
-    emailService: process.env.SMTP_USER ? 'Configured' : 'Not configured',
-    version: '1.0.0',
-    features: { // ✅ NEW: Added features section
+    version: '1.2.0',
+    features: {
       authentication: 'active',
-      donations: 'active', // ✅ NEW
+      donations: 'active',
       membership: 'active',
       events: 'active',
       fileUpload: 'active'
     }
   });
 });
+
+// ============================================
+// ✅ TEST ENDPOINTS
+// ============================================
 
 // Test email endpoint
 app.post('/api/test-email', async (req, res) => {
@@ -104,7 +102,6 @@ app.post('/api/test-email', async (req, res) => {
       });
     }
 
-    // Validate email format
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -148,7 +145,7 @@ app.post('/api/test-email', async (req, res) => {
   }
 });
 
-// Test registration endpoint - for debugging
+// Test registration endpoint
 app.post('/api/test-register', (req, res) => {
   console.log('✅ Test registration endpoint hit:', req.body);
   res.json({
@@ -159,7 +156,7 @@ app.post('/api/test-register', (req, res) => {
   });
 });
 
-// Test donation endpoint - for debugging
+// Test donation endpoint
 app.post('/api/test-donation', (req, res) => {
   console.log('✅ Test donation endpoint hit:', {
     amount: req.body?.amount,
@@ -178,40 +175,27 @@ app.post('/api/test-donation', (req, res) => {
   });
 });
 
-// Welcome route - UPDATED with donation endpoints
+// ============================================
+// ✅ WELCOME ROUTE
+// ============================================
+
 app.get('/', (req, res) => {
   res.json({
     success: true,
     message: '🚀 SLMA Platform API is running...',
-    version: '1.1.0', // ✅ Updated version
+    version: '1.2.0',
     documentation: {
       health: 'GET /api/health',
       test: {
         email: 'POST /api/test-email',
         register: 'POST /api/test-register',
-        donation: 'POST /api/test-donation' // ✅ NEW
+        donation: 'POST /api/test-donation'
       },
-      auth: 'POST /api/auth/register',
       endpoints: {
         auth: '/api/auth',
-        donations: '/api/donations', // ✅ NEW
-        members: '/api/members',
+        donations: '/api/donations',
         events: '/api/events',
-        projects: '/api/projects',
-        admin: '/api/admin',
       }
-    },
-    donationPaymentDetails: { // ✅ NEW section
-      cbe: {
-        account: '1000212203746',
-        name: 'SOFIYA YASIN',
-        bank: 'Commercial Bank of Ethiopia'
-      },
-      telebirr: {
-        phone: '+251930670088',
-        name: 'SOFIYA YASIN'
-      },
-      note: 'Use your name or phone number as reference'
     },
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
@@ -222,13 +206,14 @@ app.get('/', (req, res) => {
 // ✅ API ROUTES
 // ============================================
 
-// Existing routes
 app.use('/api/auth', authRoutes);
-
-// ✅ NEW: Donation routes (Added after existing routes)
 app.use('/api/donations', donationRoutes);
+app.use('/api/events', eventRoutes); // ✅ Event routes (includes admin routes at /api/events/admin/*)
 
-// 404 handler for undefined API routes - UPDATED with donation endpoints
+// ============================================
+// ✅ 404 HANDLER
+// ============================================
+
 app.use('/api/*', (req, res) => {
   console.warn(`⚠️  Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
@@ -245,16 +230,25 @@ app.use('/api/*', (req, res) => {
       'GET /api/auth/verify-email/:token',
       'PUT /api/auth/reset-password/:token',
       'GET /api/auth/me',
-      'POST /api/donations', // ✅ NEW
-      'POST /api/donations/:id/receipt', // ✅ NEW
-      'GET /api/donations/:identifier', // ✅ NEW
-      'GET /api/donations/stats/summary' // ✅ NEW
+      'POST /api/donations',
+      'POST /api/donations/:id/receipt',
+      'GET /api/donations/:identifier',
+      'GET /api/donations/stats/summary',
+      // Event endpoints
+      'GET /api/events',
+      'GET /api/events/:id',
+      'POST /api/events (protected)',
+      'PUT /api/events/:id (protected)',
+      'DELETE /api/events/:id (protected)',
+      // Admin event endpoints
+      'GET /api/events/admin/all (admin only)',
+      'GET /api/events/admin/dashboard-stats (admin only)'
     ],
     suggestion: 'Check GET / for full API documentation'
   });
 });
 
-// Global error handler middleware (MUST be after all routes)
+// Global error handler middleware
 app.use(errorHandler);
 
 // Handle 404 for non-API routes
@@ -274,51 +268,28 @@ const server = app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-  console.log(`📧 Email Service: ${process.env.SMTP_USER ? 'Configured' : 'NOT CONFIGURED'}`);
   console.log('📋 Available endpoints:');
   console.log(`   ✅ Health check: http://localhost:${PORT}/api/health`);
-  console.log(`   ✅ Test endpoint: http://localhost:${PORT}/api/test-register`);
-  console.log(`   ✅ Test email: http://localhost:${PORT}/api/test-email`);
-  console.log(`   ✅ Test donation: http://localhost:${PORT}/api/test-donation`);
   console.log(`   ✅ Register: http://localhost:${PORT}/api/auth/register`);
   console.log(`   ✅ Login: http://localhost:${PORT}/api/auth/login`);
-  console.log(`   ✅ Forgot password: http://localhost:${PORT}/api/auth/forgot-password`);
   console.log(`   ✅ Donations: http://localhost:${PORT}/api/donations`);
+  console.log(`   ✅ Events: http://localhost:${PORT}/api/events`);
   console.log(`   ✅ Home: http://localhost:${PORT}/`);
   console.log('='.repeat(60));
   
-  // Display donation payment details
-  console.log('\n💰 DONATION PAYMENT DETAILS:');
-  console.log('   CBE Account: 1000212203746');
-  console.log('   Account Name: SOFIYA YASIN');
-  console.log('   TeleBirr: +251930670088');
-  console.log('   Bank: Commercial Bank of Ethiopia');
-  console.log('='.repeat(60));
-  
-  // Display important warnings
-  if (!process.env.SMTP_USER) {
-    console.warn('⚠️  WARNING: Email service is not configured!');
-    console.warn('   Auth features (verification, password reset) will not work.');
-    console.warn('   Set SMTP_USER, SMTP_PASS in .env file to enable email.');
-  }
-  
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('super_secret_key')) {
-    console.warn('⚠️  WARNING: Using default JWT secret!');
-    console.warn('   Change JWT_SECRET in production for security.');
-  }
-  
-  // ✅ FIXED: Use dynamic import instead of require() in ES module
+  // Check upload directories
   try {
     const fs = await import('fs');
     const uploadDirs = [
       path.join(__dirname, '../uploads'),
-      path.join(__dirname, '../uploads/donation-receipts')
+      path.join(__dirname, '../uploads/donation-receipts'),
+      path.join(__dirname, '../uploads/event-images')
     ];
     
     for (const dir of uploadDirs) {
       if (!fs.existsSync(dir)) {
-        console.warn(`⚠️  WARNING: Upload directory doesn't exist: ${dir}`);
-        console.warn(`   Run: mkdir -p ${dir}`);
+        console.warn(`⚠️  Creating directory: ${dir}`);
+        fs.mkdirSync(dir, { recursive: true });
       } else {
         console.log(`✅ Upload directory exists: ${dir}`);
       }
@@ -336,7 +307,6 @@ process.on('unhandledRejection', (err) => {
   console.error(`   Stack: ${err.stack}`);
   console.error('='.repeat(60));
   
-  // Close server & exit process
   server.close(() => {
     console.log('💥 Server closed due to unhandled rejection');
     process.exit(1);
