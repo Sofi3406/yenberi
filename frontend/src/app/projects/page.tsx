@@ -120,18 +120,18 @@ export default function ProjectsPage() {
 
   const featuredProject = {
     id: 7,
-    title: "Silte Cultural Festival 2024",
-    description: "Annual celebration of Silte culture featuring traditional music, dance, food, and art exhibitions. Bringing together communities from all woredas to celebrate our shared heritage.",
+    title: "Hayrenzi Cultural Revival Project",
+    description: "Preserving and promoting Silte heritage through traditional crafts, music, and community gatherings that reconnect our people with their roots.",
     category: "culture",
     status: "active",
-    location: "Worabe Stadium",
-    timeline: "December 15-17, 2024",
-    participants: 1500,
-    progress: 85,
-    impact: "Cultural unity",
-    budget: "ETB 750,000",
-    sponsors: 12,
-    imageUrl: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800"
+    location: "Silte Zone Communities",
+    timeline: "Ongoing",
+    participants: 850,
+    progress: 70,
+    impact: "Cultural preservation",
+    budget: "ETB 500,000",
+    sponsors: 8,
+    imageUrl: "/images/hayrenzi.jpg"
   };
 
   const filteredProjects = activeFilter === 'all' 
@@ -164,9 +164,9 @@ export default function ProjectsPage() {
         <div className="projects-header">
           <h1 className="projects-title">Community Projects & Initiatives</h1>
           <p className="projects-subtitle">
-            Discover how SLMA is making a difference through cultural preservation, education, 
-            and community development projects. Each initiative brings us closer to our vision 
-            of a thriving Silte community.
+            Discover how SLMA is making a difference through cultural preservation, 
+            education, and community development projects. Each initiative brings 
+            us closer to our vision of a thriving Silte community.
           </p>
           <p className="projects-tagline">
             Building our future, one project at a time.
@@ -261,23 +261,7 @@ export default function ProjectsPage() {
             <div className="featured-content">
               <span className="featured-badge">Flagship Initiative</span>
               <h3 className="featured-project-title">{featuredProject.title}</h3>
-              <p className="featured-description">{featuredProject.description}</p>
               
-              <div className="featured-stats">
-                <div className="featured-stat">
-                  <div className="featured-stat-number">{featuredProject.participants}+</div>
-                  <div className="featured-stat-label">Expected Attendees</div>
-                </div>
-                <div className="featured-stat">
-                  <div className="featured-stat-number">{featuredProject.budget}</div>
-                  <div className="featured-stat-label">Project Budget</div>
-                </div>
-                <div className="featured-stat">
-                  <div className="featured-stat-number">{featuredProject.sponsors}</div>
-                  <div className="featured-stat-label">Sponsors</div>
-                </div>
-              </div>
-
               <div className="project-actions">
                 <Link href={`/projects/${featuredProject.id}`} className="project-button primary">
                   Learn More <ChevronRight className="inline w-4 h-4 ml-1" />

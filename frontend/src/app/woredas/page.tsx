@@ -10,12 +10,12 @@ import {
   Calendar, 
   Search, 
   ArrowRight,
-  Globe,
   Target,
   TrendingUp,
-  Award,
-  BookOpen,
-  Heart
+  Shield,
+  Globe,
+  Heart,
+  Star
 } from 'lucide-react';
 
 export default function WoredasPage() {
@@ -115,27 +115,6 @@ export default function WoredasPage() {
     },
   ];
 
-  const zoneInfo = {
-    name: "Silte Zone",
-    established: "2000",
-    population: "900,000+",
-    area: "3,500 km²",
-    woredasCount: 9,
-    language: "Silt'e (ስልጥኘ)",
-    capital: "Worabe",
-    region: "Southern Nations, Nationalities, and Peoples' Region (SNNPR)"
-  };
-
-  const featuredWoreda = {
-    name: "Worabe",
-    description: "As the capital and largest city of Silte Zone, Worabe serves as the economic, cultural, and administrative center. It's home to government institutions, educational facilities, and vibrant markets.",
-    stats: {
-      growth: "8.5%",
-      projects: 15,
-      members: "2,500+"
-    }
-  };
-
   const filteredWoredas = woredas.filter(woreda => {
     const matchesSearch = woreda.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          woreda.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -157,39 +136,26 @@ export default function WoredasPage() {
         <div className="woredas-header">
           <h1 className="woredas-title">Silte Woredas & Communities</h1>
           <p className="woredas-subtitle">
-            Explore the diverse communities across all nine woredas of Silte Zone. 
-            Each woreda has its unique character, culture, and contributions to our shared heritage.
+            Discover the unique character and cultural richness of each woreda within the Silte Zone. 
+            From urban centers to rural heartlands, every community contributes to our shared heritage.
           </p>
           <p className="woredas-tagline">
             United in diversity, rooted in culture.
           </p>
         </div>
 
-        {/* Zone Map Preview */}
-        <div className="zone-map">
-          <h2 className="map-title">Silte Zone Overview</h2>
-          <div className="map-container">
-            <div className="map-placeholder">
-              <Globe className="map-placeholder-icon" />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                Silte Zone Map
-              </h3>
-              <p>Interactive map showing all woredas</p>
+        {/* Community Introduction */}
+        <div className="community-intro">
+          <div className="intro-content">
+            <div className="intro-icon">
+              <Heart className="intro-icon-svg" />
             </div>
-          </div>
-          <div className="map-stats">
-            <div className="map-stat">
-              <div className="stat-number">{zoneInfo.woredasCount}</div>
-              <div className="stat-label">Woredas</div>
-            </div>
-            <div className="map-stat">
-              <div className="stat-number">{zoneInfo.population}</div>
-              <div className="stat-label">Population</div>
-            </div>
-            <div className="map-stat">
-              <div className="stat-number">{zoneInfo.area}</div>
-              <div className="stat-label">Total Area</div>
-            </div>
+            <h2 className="intro-title">Our Woredas, Our Strength</h2>
+            <p className="intro-description">
+              Each woreda in Silte Zone represents a unique chapter in our collective story. 
+              Through local governance, cultural preservation, and community development, 
+              these administrative units form the backbone of our region's progress and identity.
+            </p>
           </div>
         </div>
 
@@ -209,7 +175,7 @@ export default function WoredasPage() {
 
         {/* Woreda Type Filter */}
         <div className="woredas-filter">
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+          <div className="filter-buttons">
             {woredaTypes.map(type => (
               <button
                 key={type.id}
@@ -281,81 +247,43 @@ export default function WoredasPage() {
           </div>
         )}
 
-        {/* Featured Woreda */}
-        <div className="featured-woredas">
-          <div className="featured-header">
-            <h2 className="featured-title">Featured Woreda</h2>
-            <p className="featured-subtitle">Learn about our administrative and cultural center</p>
-          </div>
-
-          <div className="featured-card">
-            <div className="featured-content">
-              <h3>{featuredWoreda.name}</h3>
-              <p>{featuredWoreda.description}</p>
-              
-              <div className="featured-stats">
-                <div className="featured-stat">
-                  <div className="featured-stat-number">{featuredWoreda.stats.growth}</div>
-                  <div className="featured-stat-label">Annual Growth</div>
-                </div>
-                <div className="featured-stat">
-                  <div className="featured-stat-number">{featuredWoreda.stats.projects}</div>
-                  <div className="featured-stat-label">Active Projects</div>
-                </div>
-                <div className="featured-stat">
-                  <div className="featured-stat-number">{featuredWoreda.stats.members}</div>
-                  <div className="featured-stat-label">SLMA Members</div>
-                </div>
-              </div>
-
-              <Link href="/woredas/worabe" className="cta-button primary" style={{ marginTop: '1rem' }}>
-                Explore Worabe
-              </Link>
-            </div>
-            
-            <div className="featured-image">
-              <Award className="featured-image-icon" />
-            </div>
-          </div>
-        </div>
-
         {/* Zone Information */}
         <div className="zone-info">
           <div className="zone-info-header">
-            <MapPin className="zone-info-icon" />
-            <h2 className="zone-info-title">About Silte Zone</h2>
+            <Shield className="zone-info-icon" />
+            <h2 className="zone-info-title">Zone Overview</h2>
           </div>
           
           <div className="zone-info-content">
             <div className="info-item">
-              <Target className="info-icon" />
+              <Globe className="info-icon" />
               <div className="info-text">
-                <h4>Location & Geography</h4>
-                <p>Located in the SNNPR region, Silte Zone covers approximately {zoneInfo.area} with diverse landscapes from highlands to lowlands.</p>
+                <h4>Regional Context</h4>
+                <p>The Silte Zone is part of Ethiopia's Southern Nations region, characterized by diverse ecosystems and rich agricultural heritage that sustains our communities.</p>
               </div>
             </div>
             
             <div className="info-item">
               <Users className="info-icon" />
               <div className="info-text">
-                <h4>Population & Culture</h4>
-                <p>Home to over {zoneInfo.population} people who primarily speak {zoneInfo.language} and maintain rich cultural traditions.</p>
+                <h4>Community Structure</h4>
+                <p>Our nine woredas encompass hundreds of local communities, each maintaining unique traditions while contributing to our collective development.</p>
               </div>
             </div>
             
             <div className="info-item">
-              <Building className="info-icon" />
+              <Target className="info-icon" />
               <div className="info-text">
-                <h4>Administration</h4>
-                <p>Established in {zoneInfo.established} with {zoneInfo.woredasCount} woredas. The zone capital is {zoneInfo.capital}.</p>
+                <h4>Development Focus</h4>
+                <p>Each woreda follows tailored development strategies addressing local needs while aligning with broader regional growth objectives.</p>
               </div>
             </div>
             
             <div className="info-item">
-              <TrendingUp className="info-icon" />
+              <Star className="info-icon" />
               <div className="info-text">
-                <h4>Development</h4>
-                <p>Rapid development in agriculture, education, and infrastructure across all woredas with community-led initiatives.</p>
+                <h4>Cultural Significance</h4>
+                <p>Woredas serve as custodians of local traditions, languages, and practices that form the rich tapestry of Silte cultural identity.</p>
               </div>
             </div>
           </div>
@@ -366,7 +294,7 @@ export default function WoredasPage() {
           <h2 className="cta-title">Connect with Your Community</h2>
           <p className="cta-description">
             Find your woreda community, connect with local members, and participate in 
-            woreda-specific events and projects.
+            woreda-specific events and projects that strengthen our collective future.
           </p>
           
           <div className="cta-buttons">
@@ -379,6 +307,484 @@ export default function WoredasPage() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .woredas-page {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .woredas-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 20px;
+        }
+
+        /* Header */
+        .woredas-header {
+          text-align: center;
+          margin-bottom: 50px;
+        }
+
+        .woredas-title {
+          font-size: 42px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-bottom: 20px;
+        }
+
+        .woredas-subtitle {
+          font-size: 18px;
+          color: #64748b;
+          max-width: 800px;
+          margin: 0 auto 15px;
+          line-height: 1.6;
+        }
+
+        .woredas-tagline {
+          font-size: 20px;
+          color: #0ea5a4;
+          font-weight: 600;
+          font-style: italic;
+          letter-spacing: 0.5px;
+        }
+
+        /* Community Introduction */
+        .community-intro {
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border-radius: 20px;
+          padding: 40px;
+          margin-bottom: 50px;
+          text-align: center;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .intro-content {
+          max-width: 700px;
+          margin: 0 auto;
+        }
+
+        .intro-icon {
+          width: 70px;
+          height: 70px;
+          background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 25px;
+        }
+
+        .intro-icon-svg {
+          width: 32px;
+          height: 32px;
+          color: white;
+        }
+
+        .intro-title {
+          font-size: 28px;
+          color: #0f172a;
+          margin-bottom: 15px;
+          font-weight: 600;
+        }
+
+        .intro-description {
+          font-size: 16px;
+          color: #64748b;
+          line-height: 1.7;
+          margin: 0;
+        }
+
+        /* Search */
+        .woredas-search {
+          margin-bottom: 30px;
+        }
+
+        .search-container {
+          max-width: 600px;
+          margin: 0 auto;
+          position: relative;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 20px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          width: 20px;
+          height: 20px;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 16px 20px 16px 50px;
+          font-size: 16px;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          background: white;
+          color: #0f172a;
+          transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #0ea5a4;
+          box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.1);
+        }
+
+        .search-input::placeholder {
+          color: #94a3b8;
+        }
+
+        /* Filter */
+        .woredas-filter {
+          margin-bottom: 40px;
+        }
+
+        .filter-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .filter-button {
+          padding: 12px 24px;
+          border: 2px solid #e2e8f0;
+          border-radius: 50px;
+          background: white;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .filter-button:hover {
+          border-color: #0ea5a4;
+          color: #0ea5a4;
+        }
+
+        .filter-button.active {
+          background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+          border-color: #0ea5a4;
+          color: white;
+          box-shadow: 0 4px 15px rgba(14, 165, 164, 0.3);
+        }
+
+        /* Woredas Grid */
+        .woredas-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 25px;
+          margin-bottom: 60px;
+        }
+
+        .woreda-card {
+          background: white;
+          border-radius: 16px;
+          padding: 25px;
+          transition: all 0.3s ease;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+          text-decoration: none;
+          color: inherit;
+        }
+
+        .woreda-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+          border-color: #0ea5a4;
+        }
+
+        .woreda-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 15px;
+        }
+
+        .woreda-name {
+          font-size: 22px;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .woreda-type {
+          font-size: 12px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 20px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .type-urban {
+          background: rgba(14, 165, 164, 0.1);
+          color: #0ea5a4;
+        }
+
+        .type-rural {
+          background: rgba(16, 185, 129, 0.1);
+          color: #10b981;
+        }
+
+        .type-mixed {
+          background: rgba(139, 92, 246, 0.1);
+          color: #8b5cf6;
+        }
+
+        .woreda-description {
+          color: #64748b;
+          line-height: 1.6;
+          margin-bottom: 20px;
+          font-size: 14px;
+        }
+
+        .woreda-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+
+        .woreda-stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 10px;
+          background: #f8fafc;
+          border-radius: 10px;
+        }
+
+        .stat-icon {
+          width: 16px;
+          height: 16px;
+          color: #0ea5a4;
+          margin-bottom: 6px;
+        }
+
+        .woreda-stat span {
+          font-size: 12px;
+          font-weight: 600;
+          color: #475569;
+        }
+
+        .explore-link {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 15px;
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .explore-text {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0ea5a4;
+        }
+
+        .explore-arrow {
+          width: 16px;
+          height: 16px;
+          color: #0ea5a4;
+        }
+
+        /* No Results */
+        .no-results {
+          text-align: center;
+          padding: 50px 20px;
+          background: white;
+          border-radius: 16px;
+          margin-bottom: 50px;
+          border: 2px dashed #e2e8f0;
+        }
+
+        .no-results-icon {
+          width: 50px;
+          height: 50px;
+          color: #94a3b8;
+          margin: 0 auto 20px;
+        }
+
+        .no-results-title {
+          font-size: 22px;
+          color: #0f172a;
+          margin-bottom: 10px;
+        }
+
+        .no-results-description {
+          color: #64748b;
+          max-width: 400px;
+          margin: 0 auto 20px;
+        }
+
+        /* Zone Info */
+        .zone-info {
+          background: white;
+          border-radius: 20px;
+          padding: 40px;
+          margin-bottom: 60px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+          border: 1px solid #e2e8f0;
+        }
+
+        .zone-info-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 30px;
+        }
+
+        .zone-info-icon {
+          width: 35px;
+          height: 35px;
+          color: #0ea5a4;
+          background: rgba(14, 165, 164, 0.1);
+          padding: 8px;
+          border-radius: 10px;
+        }
+
+        .zone-info-title {
+          font-size: 28px;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .zone-info-content {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 25px;
+        }
+
+        .info-item {
+          display: flex;
+          gap: 15px;
+          align-items: flex-start;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+          background: #f1f5f9;
+          transform: translateY(-3px);
+        }
+
+        .info-icon {
+          width: 35px;
+          height: 35px;
+          color: #0ea5a4;
+          flex-shrink: 0;
+          padding: 7px;
+          background: white;
+          border-radius: 10px;
+        }
+
+        .info-text h4 {
+          font-size: 16px;
+          color: #0f172a;
+          margin: 0 0 8px 0;
+          font-weight: 600;
+        }
+
+        .info-text p {
+          color: #64748b;
+          line-height: 1.6;
+          margin: 0;
+          font-size: 14px;
+        }
+
+        /* CTA */
+        .woredas-cta {
+          text-align: center;
+          padding: 50px;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          border-radius: 20px;
+        }
+
+        .cta-title {
+          font-size: 32px;
+          color: white;
+          margin-bottom: 15px;
+          font-weight: 600;
+        }
+
+        .cta-description {
+          font-size: 16px;
+          color: #cbd5e1;
+          max-width: 600px;
+          margin: 0 auto 30px;
+          line-height: 1.6;
+        }
+
+        .cta-buttons {
+          display: flex;
+          gap: 15px;
+          justify-content: center;
+        }
+
+        .cta-button {
+          padding: 14px 28px;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s ease;
+        }
+
+        .cta-button.primary {
+          background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+          color: white;
+          border: none;
+        }
+
+        .cta-button.primary:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 20px rgba(14, 165, 164, 0.4);
+        }
+
+        .cta-button.secondary {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-button.secondary:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .woredas-title {
+            font-size: 32px;
+          }
+          
+          .woredas-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+          }
+          
+          .cta-button {
+            width: 100%;
+            max-width: 250px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

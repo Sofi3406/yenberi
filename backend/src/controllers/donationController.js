@@ -1,6 +1,7 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import Donation from '../models/Donation.js';
 import User from '../models/User.js';
+import Activity from '../models/Activity.js';
 import { sendDonationEmail, sendReceiptVerificationEmail } from '../services/emailService.js';
 
 // @desc    Create a new donation
@@ -69,6 +70,20 @@ export const createDonation = asyncHandler(async (req, res) => {
     // Create donation
     const donation = new Donation(donationData);
     await donation.save();
+
+    // Log activity for registered user donor
+    try {
+      if (userId) {
+        await Activity.create({
+          user: userId,
+          type: 'donation',
+          description: `Donation submitted: ETB ${donation.amount}`,
+          metadata: { donationId: donation._id, amount: donation.amount, transactionId: donation.transactionId }
+        });
+      }
+    } catch (actErr) {
+      console.warn('Failed to create donation activity:', actErr.message);
+    }
 
     // Prepare payment instructions
     const paymentInstructions = getPaymentInstructions(paymentMethod, amount);
@@ -176,6 +191,20 @@ export const uploadReceipt = asyncHandler(async (req, res) => {
     donation.paymentStatus = 'paid'; // Mark as paid when receipt is uploaded
     
     await donation.save();
+
+    // Create activity for user when donation is verified/rejected
+    try {
+      if (donation.donor?.userId) {
+        await Activity.create({
+          user: donation.donor.userId,
+          type: 'payment_verification',
+          description: `Donation ${donation.paymentStatus}`,
+          metadata: { donationId: donation._id, status: donation.paymentStatus, verifiedBy: donation.verifiedBy }
+        });
+      }
+    } catch (actErr) {
+      console.warn('Failed to create payment verification activity:', actErr.message);
+    }
 
     // Notify admins about new receipt
     // (You can add admin notification logic here)

@@ -19,6 +19,7 @@ const activitySchema = new mongoose.Schema({
       'community_join',
       'donation',
       'membership_renewal'
+      , 'admin_action'
     ],
     required: true,
   },

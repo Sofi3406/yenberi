@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authService } from '@/services/authService';
 
 const eventSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -70,6 +71,14 @@ export default function CreateEventPage() {
   const isIslamicEvent = watch('isIslamicEvent');
   const registrationRequired = watch('registrationRequired');
 
+  useEffect(() => {
+    // Require authenticated admin to access this page
+    if (!authService.isAuthenticated() || !authService.isAdmin()) {
+      toast.error('Please login as an admin to create events');
+      router.push('/auth/login');
+    }
+  }, []);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -111,8 +120,15 @@ export default function CreateEventPage() {
         formData.append('image', image);
       }
 
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/events', {
+      const token = authService.getToken();
+      if (!token) {
+        setLoading(false);
+        toast.error('Not authenticated. Please login as admin.');
+        router.push('/auth/login');
+        return;
+      }
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/events`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

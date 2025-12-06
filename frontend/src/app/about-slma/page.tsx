@@ -179,29 +179,6 @@ export default function AboutSLMAPage() {
                   </div>
                 </div>
               </div>
-              
-              {/* Road Infrastructure */}
-              <div className="project-card">
-                <div className="project-image">
-                  <div className="image-placeholder">🛣️</div>
-                </div>
-                <div className="project-content">
-                  <h3 className="project-title">Rural Road Development</h3>
-                  <div className="project-stats">
-                    <span className="stat">150km Roads</span>
-                    <span className="stat">20 Bridges</span>
-                    <span className="stat">All-Weather</span>
-                  </div>
-                  <p className="project-description">
-                    Construction and rehabilitation of rural roads connecting agricultural 
-                    communities to markets, schools, and healthcare facilities.
-                  </p>
-                  <div className="project-impact">
-                    <strong>Impact:</strong> 70% reduction in travel time, 40% increase 
-                    in farm income
-                  </div>
-                </div>
-              </div>
             </div>
           </section>
 

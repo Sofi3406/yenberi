@@ -18,7 +18,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'member' | 'zone_admin' | 'super_admin';
+  role: 'member' | 'woreda_admin' | 'super_admin';
   membership: {
     membershipId: string;
     status: 'active' | 'expired' | 'pending' | 'cancelled';
@@ -120,5 +120,18 @@ export const authService = {
   // Alias for getCurrentUser
   getUser: (): User | null => {
     return authService.getCurrentUser();
+  },
+
+  // Check if current user is admin (woreda_admin or super_admin)
+  isAdmin: (): boolean => {
+    const user = authService.getUser();
+    if (!user) return false;
+    return user.role === 'super_admin' || user.role === 'woreda_admin';
+  },
+
+  // Check if current user is super admin
+  isSuperAdmin: (): boolean => {
+    const user = authService.getUser();
+    return !!user && user.role === 'super_admin';
   },
 };

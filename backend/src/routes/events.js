@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import Event from '../models/Event.js';
+import Activity from '../models/Activity.js';
 import { protect as authenticate, authorize } from '../middlewares/auth.js';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
@@ -30,8 +31,14 @@ cloudinary.config({
 
 // Helper function to upload image to Cloudinary
 const uploadToCloudinary = (fileBuffer) => {
+  // If Cloudinary is not configured in env, return a default image URL for local/dev
+  if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET || !process.env.CLOUDINARY_CLOUD_NAME) {
+    console.warn('⚠️ Cloudinary credentials not set — using fallback image for event uploads');
+    return Promise.resolve({ secure_url: 'https://via.placeholder.com/800x450?text=Event+Image', public_id: null });
+  }
+
   return new Promise((resolve, reject) => {
-    cloudinary.v2.uploader.upload_stream(
+    cloudinary.uploader.upload_stream(
       {
         folder: 'silte-events',
         transformation: [
@@ -587,8 +594,8 @@ router.put('/:id',
       if (req.file) {
         // Delete old image from Cloudinary if exists
         if (event.imagePublicId) {
-          try {
-            await cloudinary.v2.uploader.destroy(event.imagePublicId);
+            try {
+            await cloudinary.uploader.destroy(event.imagePublicId);
           } catch (cloudinaryError) {
             console.warn('Failed to delete old image:', cloudinaryError);
           }
@@ -756,6 +763,18 @@ router.post('/:id/register', authenticate, async (req, res) => {
     const populatedEvent = await Event.findById(event._id)
       .populate('organizer', 'name email')
       .populate('attendees', 'name email');
+
+    // Log activity for event registration
+    try {
+      await Activity.create({
+        user: req.user.id,
+        type: 'event_registration',
+        description: `Registered for event: ${event.title || event.name || event._id}`,
+        metadata: { eventId: event._id, eventTitle: event.title || event.name }
+      });
+    } catch (actErr) {
+      console.warn('Failed to create event registration activity:', actErr.message);
+    }
 
     res.json({
       success: true,
@@ -988,7 +1007,7 @@ router.post('/admin/bulk-actions', authenticate, authorize('super_admin'), async
         for (const event of events) {
           if (event.imagePublicId) {
             try {
-              await cloudinary.v2.uploader.destroy(event.imagePublicId);
+              await cloudinary.uploader.destroy(event.imagePublicId);
             } catch (cloudinaryError) {
               console.warn('Failed to delete image:', cloudinaryError);
             }

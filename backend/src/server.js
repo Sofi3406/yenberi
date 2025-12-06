@@ -10,6 +10,9 @@ import errorHandler from './middlewares/errorHandler.js';
 import authRoutes from './routes/auth.js';
 import donationRoutes from './routes/donationRoutes.js';
 import eventRoutes from './routes/events.js'; // ✅ Event routes (includes admin endpoints)
+import adminUsersRoutes from './routes/adminUsers.js';
+import activitiesRoutes from './routes/activities.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 // Import email service
 import { testEmailService } from './services/emailService.js';
@@ -209,6 +212,9 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/events', eventRoutes); // ✅ Event routes (includes admin routes at /api/events/admin/*)
+app.use('/api/activities', activitiesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin/users', adminUsersRoutes);
 
 // ============================================
 // ✅ 404 HANDLER

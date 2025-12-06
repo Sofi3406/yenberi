@@ -101,12 +101,16 @@ const seedWoredas = async () => {
 };
 
 const seedAdminUser = async () => {
+  const adminName = process.env.ADMIN_NAME || 'Sofiya Yasin';
+  const adminEmail = process.env.ADMIN_EMAIL || 'sofiyasin190@gmail.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Sofi@123!';
+
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash('admin123', salt);
+  const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
   const admin = new User({
-    name: 'Super Admin',
-    email: 'admin@slma.org',
+    name: adminName,
+    email: adminEmail,
     password: hashedPassword,
     role: 'super_admin',
     language: 'en',
@@ -118,16 +122,25 @@ const seedAdminUser = async () => {
     },
   });
 
-  await User.deleteOne({ email: 'admin@slma.org' });
+  await User.deleteOne({ email: adminEmail });
   await admin.save();
-  console.log('✅ Admin user seeded (email: admin@slma.org, password: admin123)');
+  console.log(`✅ Admin user seeded (email: ${adminEmail}, password: ${adminPassword})`);
 };
 
 const seedData = async () => {
   try {
     await seedWoredas();
-    await seedAdminUser();
-    console.log('✅ All data seeded successfully!');
+
+    // Only create admin if explicitly allowed via environment variable
+    // Set ADMIN_SEED_ALLOWED=true to enable seeding admin (protects production)
+    if (process.env.ADMIN_SEED_ALLOWED === 'true') {
+      await seedAdminUser();
+      console.log('✅ Admin seeding completed');
+    } else {
+      console.log('⚠️ ADMIN_SEED_ALLOWED not set to true — skipping admin seed');
+    }
+
+    console.log('✅ All data seeded (woredas + optional admin).');
     process.exit(0);
   } catch (error) {
     console.error('❌ Error seeding data:', error);

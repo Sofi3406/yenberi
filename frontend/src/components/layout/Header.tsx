@@ -22,6 +22,11 @@ const Header = () => {
     { href: '/donate', label: t('nav.donate') },
   ];
 
+  // Add admin area link if current user is admin
+  if (authService.isAdmin()) {
+    navItems.push({ href: '/admin/events', label: 'Admin' });
+  }
+
   const languageOptions = [
     { code: 'en', label: 'EN' },
     { code: 'am', label: 'አማ' },

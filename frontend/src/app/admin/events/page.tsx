@@ -19,6 +19,7 @@ import {
   MoreVertical
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authService } from '@/services/authService';
 
 interface Event {
   _id: string;
@@ -80,7 +81,7 @@ export default function AdminEventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = authService.getToken();
       
       let url = `/api/events/admin/all?page=${currentPage}&limit=10`;
       
@@ -114,8 +115,9 @@ export default function AdminEventsPage() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/events/admin/dashboard-stats', {
+      const token = authService.getToken();
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/events/admin/dashboard-stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -145,8 +147,9 @@ export default function AdminEventsPage() {
     if (!confirm('Are you sure you want to delete this event?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/events/${id}`, {
+      const token = authService.getToken();
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/events/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -166,8 +169,9 @@ export default function AdminEventsPage() {
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/events/${id}`, {
+      const token = authService.getToken();
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/events/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -198,8 +202,9 @@ export default function AdminEventsPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/events/admin/bulk-actions', {
+      const token = authService.getToken();
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/events/admin/bulk-actions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

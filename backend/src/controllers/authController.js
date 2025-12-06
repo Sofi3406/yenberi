@@ -1,5 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import User from '../models/User.js';
+import Activity from '../models/Activity.js';
 import generateToken from '../utils/generateToken.js';
 import crypto from 'crypto';
 import { 
@@ -239,6 +240,18 @@ export const register = asyncHandler(async (req, res, next) => {
           }
         }
 
+        // Create activity for registration
+        try {
+          await Activity.create({
+            user: user._id,
+            type: 'registration',
+            description: `User registered with plan ${membershipPlan}`,
+            metadata: { membershipPlan }
+          });
+        } catch (actErr) {
+          console.warn('Failed to create registration activity:', actErr.message);
+        }
+
         // Prepare response
         const userResponse = {
           id: user._id,
@@ -419,6 +432,18 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
       }
     } catch (emailError) {
       console.warn('⚠️ Failed to send welcome email:', emailError.message);
+    }
+
+    // Create activity for email verification
+    try {
+      await Activity.create({
+        user: user._id,
+        type: 'email_verification',
+        description: 'Email verified successfully',
+        metadata: { method: 'link' }
+      });
+    } catch (actErr) {
+      console.warn('Failed to create email verification activity:', actErr.message);
     }
 
     res.json({
@@ -619,6 +644,20 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
       isActive: user.isActive,
       profile: user.profile,
     };
+
+    // Create activity for profile update
+    try {
+      await Activity.create({
+        user: user._id,
+        type: 'profile_update',
+        description: 'User updated profile information',
+        metadata: {
+          updatedFields: Object.keys(req.body)
+        }
+      });
+    } catch (actErr) {
+      console.warn('Failed to create profile update activity:', actErr.message);
+    }
 
     res.json({
       success: true,

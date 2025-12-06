@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authService } from '@/services/authService';
+import { activitiesApi } from '@/services/activitiesApi';
+import ActivityFeed from '@/components/features/activity/ActivityFeed';
 import { 
   Calendar, 
   Users, 
@@ -92,21 +94,13 @@ export default function DashboardPage() {
           communityEngagement: 85
         });
 
-        // Set mock recent activities
-        setRecentActivities([
-          {
-            _id: '1',
-            type: 'profile_update',
-            description: 'Updated profile information',
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-          },
-          {
-            _id: '2',
-            type: 'event_registration',
-            description: 'Registered for Cultural Festival 2024',
-            createdAt: new Date(Date.now() - 172800000).toISOString(),
-          },
-        ]);
+        // Fetch recent activities from API
+        try {
+          const activities = await activitiesApi.getUserActivities(10);
+          setRecentActivities(activities);
+        } catch (actErr) {
+          console.warn('Failed to fetch recent activities:', actErr);
+        }
 
         // Set mock upcoming events
         setUpcomingEvents([
@@ -481,26 +475,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="activity-list">
-                  {recentActivities.length > 0 ? (
-                    recentActivities.slice(0, 5).map((activity) => (
-                      <div key={activity._id} className="activity-item">
-                        <div className="activity-icon">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div>
-                          <p className="activity-description">{activity.description}</p>
-                          <p className="activity-time">
-                            {format(new Date(activity.createdAt), 'MMM dd, hh:mm a')}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <Activity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500">No recent activity</p>
-                    </div>
-                  )}
+                  <ActivityFeed activities={recentActivities.slice(0, 5)} />
                 </div>
               </div>
             </div>

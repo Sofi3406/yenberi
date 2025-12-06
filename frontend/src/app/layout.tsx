@@ -5,7 +5,7 @@ import Footer from '@/components/layout/Footer';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 
 export const metadata: Metadata = {
-  title: 'Silte Ləmat Mehber - Preserving Heritage, Building Community',
+  title: 'Silte Lmat Mehber - Preserving Heritage, Building Community',
   description: 'Official platform for Silte Ləmat Mehber community.',
 };
 

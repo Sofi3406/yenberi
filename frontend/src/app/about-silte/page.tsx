@@ -196,37 +196,6 @@ export default function AboutSiltePage() {
 
           {/* Right Column - Sidebar */}
           <div className="sidebar">
-            {/* Quick Facts */}
-            <div className="sidebar-card">
-              <h3 className="sidebar-title">Quick Facts</h3>
-              <ul className="facts-list">
-                <li className="fact-item">
-                  <span className="fact-label">Region:</span>
-                  <span className="fact-value">SNNPR, Ethiopia</span>
-                </li>
-                <li className="fact-item">
-                  <span className="fact-label">Capital:</span>
-                  <span className="fact-value">Worabe</span>
-                </li>
-                <li className="fact-item">
-                  <span className="fact-label">Language:</span>
-                  <span className="fact-value">Silt'e (እንግሊዝኛ)</span>
-                </li>
-                <li className="fact-item">
-                  <span className="fact-label">Religion:</span>
-                  <span className="fact-value">Islam, Christianity</span>
-                </li>
-                <li className="fact-item">
-                  <span className="fact-label">Time Zone:</span>
-                  <span className="fact-value">EAT (UTC+3)</span>
-                </li>
-                <li className="fact-item">
-                  <span className="fact-label">Major Cities:</span>
-                  <span className="fact-value">Worabe, Sankura, Alicho</span>
-                </li>
-              </ul>
-            </div>
-
             {/* Woredas List */}
             <div className="sidebar-card">
               <h3 className="sidebar-title">Silte Woredas</h3>
