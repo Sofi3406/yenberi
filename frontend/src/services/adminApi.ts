@@ -24,6 +24,28 @@ export const adminApi = {
   deleteUser: async (id: string) => {
     const res = await api.delete(`/admin/users/${id}`);
     return res.data;
+  },
+
+  verifyUser: async (id: string) => {
+    const res = await api.put(`/admin/users/${id}/verify`);
+    return res.data;
+  },
+
+  getPayments: async (status?: string, page = 1, limit = 20) => {
+    const params: any = { page, limit };
+    if (status) params.status = status;
+    const res = await api.get('/admin/payments', { params });
+    return res.data;
+  },
+
+  verifyPayment: async (userId: string, status: 'verified' | 'rejected', notes?: string) => {
+    const res = await api.put(`/admin/payments/${userId}/verify`, { status, notes });
+    return res.data;
+  },
+
+  getDashboardStats: async () => {
+    const res = await api.get('/admin/dashboard/stats');
+    return res.data;
   }
 };
 

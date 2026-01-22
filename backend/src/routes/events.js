@@ -477,7 +477,9 @@ router.post('/',
         suitableFor,
         registrationRequired,
         registrationUrl,
-        registrationDeadline
+        registrationDeadline,
+        isVirtual,
+        googleMeetingLink
       } = req.body;
 
       let imageUrl = '';
@@ -543,6 +545,8 @@ router.post('/',
         registrationRequired: registrationRequired === 'true' || registrationRequired === true,
         registrationUrl,
         registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
+        isVirtual: isVirtual === 'true' || isVirtual === true,
+        googleMeetingLink: googleMeetingLink || undefined,
         status: 'upcoming'
       });
 
@@ -627,7 +631,7 @@ router.put('/:id',
         'location', 'address', 'type', 'category', 'maxAttendees',
         'image', 'imagePublicId', 'time', 'isIslamicEvent', 'prayerTiming',
         'suitableFor', 'registrationRequired', 'registrationUrl',
-        'registrationDeadline', 'status', 'adminNotes'
+        'registrationDeadline', 'status', 'adminNotes', 'isVirtual', 'googleMeetingLink'
       ];
 
       allowedUpdates.forEach(field => {
@@ -649,6 +653,9 @@ router.put('/:id',
       }
       if (updates.registrationRequired !== undefined) {
         updates.registrationRequired = updates.registrationRequired === 'true' || updates.registrationRequired === true;
+      }
+      if (updates.isVirtual !== undefined) {
+        updates.isVirtual = updates.isVirtual === 'true' || updates.isVirtual === true;
       }
 
       const updatedEvent = await Event.findByIdAndUpdate(

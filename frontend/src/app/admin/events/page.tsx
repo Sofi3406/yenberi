@@ -16,7 +16,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  MoreVertical
+  MoreVertical,
+  Video
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authService } from '@/services/authService';
@@ -32,6 +33,8 @@ interface Event {
   maxAttendees: number;
   image: string;
   isActive: boolean;
+  isVirtual?: boolean;
+  googleMeetingLink?: string;
   organizer: {
     name: string;
     email: string;
@@ -537,7 +540,26 @@ export default function AdminEventsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{formatDate(event.date)}</div>
-                      <div className="text-sm text-gray-500">{event.location}</div>
+                      <div className="text-sm text-gray-500">
+                        {event.isVirtual ? (
+                          <span className="flex items-center gap-1">
+                            <Video className="w-3 h-3" />
+                            Virtual Event
+                          </span>
+                        ) : (
+                          event.location
+                        )}
+                      </div>
+                      {event.isVirtual && event.googleMeetingLink && (
+                        <a 
+                          href={event.googleMeetingLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                        >
+                          Meeting Link →
+                        </a>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{event.organizer?.name}</div>

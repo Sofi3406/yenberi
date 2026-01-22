@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.js';
 import donationRoutes from './routes/donationRoutes.js';
 import eventRoutes from './routes/events.js'; // ✅ Event routes (includes admin endpoints)
 import adminUsersRoutes from './routes/adminUsers.js';
+import adminRoutes from './routes/admin.js'; // ✅ Admin routes (dashboard, payments, etc.)
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
 
@@ -62,6 +63,7 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/uploads/donation-receipts', express.static(path.join(__dirname, '../uploads/donation-receipts')));
 app.use('/uploads/event-images', express.static(path.join(__dirname, '../uploads/event-images')));
+app.use('/uploads/receipts', express.static(path.join(__dirname, '../uploads/receipts')));
 
 // ============================================
 // ✅ HEALTH CHECK ENDPOINT
@@ -215,6 +217,7 @@ app.use('/api/events', eventRoutes); // ✅ Event routes (includes admin routes 
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/users', adminUsersRoutes);
+app.use('/api/admin', adminRoutes); // ✅ Admin routes (dashboard stats, payments, etc.)
 
 // ============================================
 // ✅ 404 HANDLER
@@ -289,7 +292,8 @@ const server = app.listen(PORT, async () => {
     const uploadDirs = [
       path.join(__dirname, '../uploads'),
       path.join(__dirname, '../uploads/donation-receipts'),
-      path.join(__dirname, '../uploads/event-images')
+      path.join(__dirname, '../uploads/event-images'),
+      path.join(__dirname, '../uploads/receipts')
     ];
     
     for (const dir of uploadDirs) {

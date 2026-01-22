@@ -414,6 +414,199 @@ export const testEmailService = async (toEmail) => {
 };
 
 /**
+ * Send user account verification email (when admin verifies user)
+ */
+export const sendUserVerificationEmail = async (email, name, membershipId) => {
+  try {
+    const mailOptions = {
+      from: `"SLMA Membership" <${process.env.SMTP_FROM}>`,
+      to: email,
+      subject: '✅ Account Verified - Welcome to SLMA!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Verified</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .success-box { background: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+            .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+            .badge { background: #4F46E5; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Account Verified Successfully!</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Congratulations ${name}!</h2>
+            
+            <div class="success-box">
+              <h3 style="margin-top: 0; color: #065f46;">✅ Your Account Has Been Verified</h3>
+              <p>Your SLMA account has been verified by our admin team. You can now access all member features!</p>
+            </div>
+            
+            ${membershipId ? `<p><strong>Your Membership ID:</strong> <span class="badge">${membershipId}</span></p>` : ''}
+            
+            <h3>🎯 What's Next?</h3>
+            <ul>
+              <li>Login to your account and explore member features</li>
+              <li>Complete your profile to connect with the community</li>
+              <li>Join community discussions and events</li>
+              <li>Access exclusive member resources</li>
+            </ul>
+            
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/auth/login" class="button">Login to Your Account</a>
+            </p>
+            
+            <p>If you have any questions or need assistance, please contact our support team.</p>
+            
+            <div class="footer">
+              <p>Welcome to the SLMA community!</p>
+              <p style="color: #6b7280; font-size: 12px;">
+                This is an automated message from Silte Ləmat Mehber Association.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Congratulations ${name}!\n\nYour SLMA account has been verified by our admin team. You can now access all member features!\n\n${membershipId ? `Membership ID: ${membershipId}\n\n` : ''}What's Next:\n- Login to your account\n- Complete your profile\n- Join community discussions\n- Access member resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nWelcome to the SLMA community!\n\nBest regards,\nSLMA Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ User verification email sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Error sending user verification email to ${email}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Send payment verification result email (when admin verifies/rejects payment)
+ */
+export const sendAdminPaymentVerificationEmail = async (email, name, status, amount, membershipId, notes) => {
+  try {
+    const isVerified = status === 'verified';
+    const subject = isVerified 
+      ? `✅ Payment Verified - Your SLMA Membership is Active!`
+      : `⚠️ Payment Verification Update - Action Required`;
+    
+    const mailOptions = {
+      from: `"SLMA Membership" <${process.env.SMTP_FROM}>`,
+      to: email,
+      subject,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Payment Verification</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, ${isVerified ? '#10b981' : '#ef4444'} 0%, ${isVerified ? '#059669' : '#dc2626'} 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .status-box { background: ${isVerified ? '#d1fae5' : '#fee2e2'}; color: ${isVerified ? '#065f46' : '#b91c1c'}; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${isVerified ? '#10b981' : '#ef4444'}; }
+            .info-box { background: #f8fafc; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .button { display: inline-block; background: ${isVerified ? '#10b981' : '#4F46E5'}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+            .badge { background: #4F46E5; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${isVerified ? 'Payment Verified Successfully!' : 'Payment Verification Update'}</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Hello ${name},</h2>
+            
+            <div class="status-box">
+              <h3 style="margin-top: 0;">${isVerified ? '✅ Payment Approved' : '⚠️ Payment Issue'}</h3>
+              ${isVerified ? `
+                <p>Your payment of <strong>ETB ${amount}</strong> has been verified by our admin team. Your SLMA membership is now active!</p>
+              ` : `
+                <p>We encountered an issue while verifying your payment of <strong>ETB ${amount}</strong>.</p>
+                ${notes ? `<p><strong>Reason:</strong> ${notes}</p>` : ''}
+              `}
+            </div>
+            
+            <div class="info-box">
+              <h4 style="margin-top: 0;">Payment Details:</h4>
+              <p><strong>Amount:</strong> ETB ${amount}</p>
+              ${membershipId ? `<p><strong>Membership ID:</strong> <span class="badge">${membershipId}</span></p>` : ''}
+              <p><strong>Status:</strong> ${isVerified ? 'Verified ✓' : 'Rejected'}</p>
+              <p><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+            
+            ${isVerified ? `
+              <h3>🎉 What's Next?</h3>
+              <ul>
+                <li>Your membership is now active and you can access all member benefits</li>
+                <li>Login to your account to explore features</li>
+                <li>Join community discussions and events</li>
+                <li>Download your digital membership card</li>
+              </ul>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL}/dashboard" class="button">Go to Your Dashboard</a>
+              </p>
+            ` : `
+              <h3>🔄 What to do next:</h3>
+              <ol>
+                <li>Review the reason for rejection above</li>
+                <li>Verify your payment details match our account information</li>
+                <li>Ensure the receipt clearly shows the transaction details</li>
+                <li>Contact support if you need assistance or want to upload a new receipt</li>
+              </ol>
+              
+              <p><strong>Our Payment Details:</strong></p>
+              <ul>
+                <li>CBE Account: 1000212203746 (Sofiya Yasin)</li>
+                <li>TeleBirr: +251 93 067 0088 (Sofiya Yasin)</li>
+              </ul>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL}/contact" class="button">Contact Support</a>
+              </p>
+            `}
+            
+            <div class="footer">
+              <p><strong>Need help?</strong></p>
+              <p>📧 Email: membership@siltecommunity.org</p>
+              <p>📞 Phone: +251 93 067 0088</p>
+              <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
+                ${isVerified ? 'Welcome to the SLMA community!' : 'We\'re here to help you complete your registration successfully.'}
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hello ${name},\n\n${isVerified ? 
+`✅ Your payment of ETB ${amount} has been verified by our admin team. Your SLMA membership is now active!\n\nPayment Details:\nAmount: ETB ${amount}\n${membershipId ? `Membership ID: ${membershipId}\n` : ''}Status: Verified\nDate: ${new Date().toLocaleDateString()}\n\nWhat's Next:\n- Your membership is now active\n- Login to access all member benefits\n- Join community discussions\n- Attend events\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nWelcome to the SLMA community!` : 
+`⚠️ We encountered an issue while verifying your payment of ETB ${amount}.\n\nPayment Details:\nAmount: ETB ${amount}\n${membershipId ? `Membership ID: ${membershipId}\n` : ''}Status: Rejected\n${notes ? `Reason: ${notes}\n` : ''}Date: ${new Date().toLocaleDateString()}\n\nWhat to do next:\n1. Review the reason for rejection\n2. Verify payment details match our account\n3. Ensure receipt shows transaction details\n4. Contact support for assistance\n\nOur Payment Details:\n- CBE Account: 1000212203746 (Sofiya Yasin)\n- TeleBirr: +251 93 067 0088 (Sofiya Yasin)\n\nContact: membership@siltecommunity.org or +251 93 067 0088`}\n\nBest regards,\nSLMA Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Admin payment verification email sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Error sending admin payment verification email to ${email}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Send payment rejected email
  */
 export const sendPaymentRejectedEmail = async (email, name, membershipId, reason) => {
@@ -888,6 +1081,10 @@ export default {
   sendWelcomeEmail,
   testEmailService,
   sendPaymentRejectedEmail,
+  
+  // Admin verification functions
+  sendUserVerificationEmail,
+  sendAdminPaymentVerificationEmail,
   
   // New donation functions
   sendDonationEmail,

@@ -100,6 +100,21 @@ const eventSchema = new mongoose.Schema({
   registrationUrl: {
     type: String,
   },
+  // NEW: Virtual event support
+  isVirtual: {
+    type: Boolean,
+    default: false,
+  },
+  googleMeetingLink: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Optional field
+        return /^https?:\/\/(meet\.google\.com|.*\.zoom\.us|.*\.teams\.microsoft\.com)/i.test(v);
+      },
+      message: 'Please provide a valid Google Meet, Zoom, or Teams link'
+    }
+  },
   // NEW: Admin notes
   adminNotes: {
     type: String,

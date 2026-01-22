@@ -81,6 +81,13 @@ export default function DashboardPage() {
           return;
         }
 
+        // If admin, redirect to admin dashboard
+        if (authService.isAdmin()) {
+          console.log('Admin user detected, redirecting to admin dashboard');
+          router.push('/admin/dashboard');
+          return;
+        }
+
         console.log('User authenticated, fetching data...');
         
         // Use the user from localStorage

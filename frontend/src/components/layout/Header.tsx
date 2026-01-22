@@ -24,7 +24,7 @@ const Header = () => {
 
   // Add admin area link if current user is admin
   if (authService.isAdmin()) {
-    navItems.push({ href: '/admin/events', label: 'Admin' });
+    navItems.push({ href: '/admin/dashboard', label: 'Admin' });
   }
 
   const languageOptions = [

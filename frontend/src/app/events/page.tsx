@@ -15,7 +15,8 @@ import {
   Heart,
   Zap,
   Search,
-  Loader2
+  Loader2,
+  Video
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -40,6 +41,8 @@ interface Event {
   suitableFor?: string[];
   registrationRequired?: boolean;
   registrationUrl?: string;
+  isVirtual?: boolean;
+  googleMeetingLink?: string;
   organizer: {
     _id: string;
     name: string;
@@ -280,13 +283,30 @@ export default function EventsPage() {
 
                     <div className="event-details">
                       <div className="event-detail"><Clock className="detail-icon" />{event.time || 'Time TBA'}</div>
-                      <div className="event-detail"><MapPin className="detail-icon" />{event.location}</div>
+                      <div className="event-detail">
+                        {event.isVirtual ? (
+                          <Video className="detail-icon" />
+                        ) : (
+                          <MapPin className="detail-icon" />
+                        )}
+                        {event.location}
+                      </div>
                       <div className="event-detail"><Users className="detail-icon" />{event.attendees?.length || 0} attendees</div>
                     </div>
 
                     <div className="event-actions">
                       <Link href={`/events/${event._id}`} className="event-button primary">View Details</Link>
-                      {event.registrationRequired ? (
+                      {event.isVirtual && event.googleMeetingLink ? (
+                        <a 
+                          href={event.googleMeetingLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="event-button secondary"
+                        >
+                          <Video className="w-4 h-4 mr-1 inline" />
+                          Join Meeting
+                        </a>
+                      ) : event.registrationRequired ? (
                         event.registrationUrl ? (
                           <a href={event.registrationUrl} target="_blank" className="event-button secondary">Register</a>
                         ) : (

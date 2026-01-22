@@ -51,6 +51,8 @@ export interface Event {
   suitableFor?: string[];
   registrationRequired?: boolean;
   registrationUrl?: string;
+  isVirtual?: boolean;
+  googleMeetingLink?: string;
   registrationDeadline?: string;
   isActive?: boolean;
   createdAt: string;

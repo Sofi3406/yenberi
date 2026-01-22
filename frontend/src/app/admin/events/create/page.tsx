@@ -13,7 +13,8 @@ import {
   Users,
   Clock,
   Globe,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Video
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authService } from '@/services/authService';
@@ -33,6 +34,8 @@ const eventSchema = z.object({
   suitableFor: z.array(z.string()).default(['families']),
   registrationRequired: z.boolean().default(false),
   registrationUrl: z.string().url().optional().or(z.literal('')),
+  isVirtual: z.boolean().default(false),
+  googleMeetingLink: z.string().url().optional().or(z.literal('')),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -64,12 +67,14 @@ export default function CreateEventPage() {
       category: 'cultural',
       isIslamicEvent: false,
       registrationRequired: false,
+      isVirtual: false,
       suitableFor: ['families'],
     },
   });
 
   const isIslamicEvent = watch('isIslamicEvent');
   const registrationRequired = watch('registrationRequired');
+  const isVirtual = watch('isVirtual');
 
   useEffect(() => {
     // Require authenticated admin to access this page
@@ -318,12 +323,46 @@ export default function CreateEventPage() {
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                     errors.location ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Worabe Stadium"
+                  placeholder="Worabe Stadium or Online"
                 />
                 {errors.location && (
                   <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
                 )}
               </div>
+
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    {...register('isVirtual')}
+                    className="rounded text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">This is a virtual/online event</span>
+                </label>
+              </div>
+
+              {isVirtual && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Video className="inline w-4 h-4 mr-2" />
+                    Google Meeting Link (or Zoom/Teams)
+                  </label>
+                  <input
+                    type="url"
+                    {...register('googleMeetingLink')}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                      errors.googleMeetingLink ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="https://meet.google.com/xxx-xxxx-xxx or https://zoom.us/j/xxxxx"
+                  />
+                  {errors.googleMeetingLink && (
+                    <p className="mt-1 text-sm text-red-600">{errors.googleMeetingLink.message}</p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter Google Meet, Zoom, or Microsoft Teams meeting link
+                  </p>
+                </div>
+              )}
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
