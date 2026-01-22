@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin,
-  Heart
+  Heart, Linkedin, Send
 } from 'lucide-react';
 
 const Footer = () => {
@@ -34,10 +34,11 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { icon: <Facebook className="social-icon" />, href: '#', label: 'Facebook' },
-    { icon: <Twitter className="social-icon" />, href: '#', label: 'Twitter' },
-    { icon: <Instagram className="social-icon" />, href: '#', label: 'Instagram' },
-    { icon: <Youtube className="social-icon" />, href: '#', label: 'YouTube' },
+    { icon: <Facebook className="social-icon" />, href: 'https://www.facebook.com/profile.php?id=100083184549440', label: 'Facebook' },
+    { icon: <Send className="social-icon" />, href: 'https://t.me/+fPpsX67kUoljZjI0', label: 'Telegram' },
+    { icon: <Youtube className="social-icon" />, href: 'https://www.youtube.com/results?search_query=worabe+tube', label: 'YouTube' },
+    { icon: <Linkedin className="social-icon" />, href: 'https://www.linkedin.com/in/sofiya-yasin-181345355?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BnNgDn%2Fi0SDK3zHvrbw1VtA%3D%3D', label: 'LinkedIn' },
+    { icon: <Instagram className="social-icon" />, href: 'https://www.instagram.com/sofiya63917', label: 'Instagram' },
   ];
 
   const contactInfo = [
@@ -71,6 +72,8 @@ const Footer = () => {
                   href={social.href}
                   className="social-link"
                   aria-label={social.label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   {social.icon}
                 </a>

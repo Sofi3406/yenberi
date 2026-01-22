@@ -12,6 +12,7 @@ import donationRoutes from './routes/donationRoutes.js';
 import eventRoutes from './routes/events.js'; // ✅ Event routes (includes admin endpoints)
 import adminUsersRoutes from './routes/adminUsers.js';
 import adminRoutes from './routes/admin.js'; // ✅ Admin routes (dashboard, payments, etc.)
+import galleryRoutes from './routes/galleries.js'; // Gallery routes (admin + public)
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
 
@@ -214,6 +215,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/events', eventRoutes); // ✅ Event routes (includes admin routes at /api/events/admin/*)
+app.use('/api/galleries', galleryRoutes); // Gallery routes
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/users', adminUsersRoutes);
