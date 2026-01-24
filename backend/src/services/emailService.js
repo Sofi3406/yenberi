@@ -38,7 +38,7 @@ export const sendVerificationEmail = async (email, name, token) => {
     const verificationUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`;
     
     const mailOptions = {
-      from: `"Silte Ləmat Mehber" <${process.env.SMTP_FROM}>`,
+      from: `"Silte Lmat Mehber" <${process.env.SMTP_FROM}>`,
       to: email,
       subject: 'Verify Your Email - Silte Ləmat Mehber',
       html: `
@@ -58,7 +58,7 @@ export const sendVerificationEmail = async (email, name, token) => {
         </head>
         <body>
           <div class="header">
-            <h1>Welcome to Silte Ləmat Mehber!</h1>
+            <h1>Welcome to Silte Lmat Mehber!</h1>
           </div>
           <div class="content">
             <h2>Hello ${name},</h2>
@@ -78,7 +78,7 @@ export const sendVerificationEmail = async (email, name, token) => {
         </body>
         </html>
       `,
-      text: `Hello ${name},\n\nWelcome to Silte Ləmat Mehber! Please verify your email by clicking this link: ${verificationUrl}\n\nIf you didn't create an account, ignore this email.\n\nBest regards,\nThe SLMA Team`
+      text: `Hello ${name},\n\nWelcome to Silte Lmat Mehber! Please verify your email by clicking this link: ${verificationUrl}\n\nIf you didn't create an account, ignore this email.\n\nBest regards,\nThe SLMA Team`
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -231,7 +231,7 @@ export const sendPaymentApprovedEmail = async (email, name, membershipId) => {
             <div class="footer">
               <p>Welcome to the SLMA community!</p>
               <p style="color: #6b7280; font-size: 12px;">
-                This is an automated message from Silte Ləmat Mehber Association.
+                This is an automated message from Silte Lmat Mehber Association.
               </p>
             </div>
           </div>
@@ -258,9 +258,9 @@ export const sendPasswordResetEmail = async (email, name, token) => {
     const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password/${token}`;
     
     const mailOptions = {
-      from: `"Silte Ləmat Mehber" <${process.env.SMTP_FROM}>`,
+      from: `"Silte Lmat Mehber" <${process.env.SMTP_FROM}>`,
       to: email,
-      subject: 'Reset Your Password - Silte Ləmat Mehber',
+      subject: 'Reset Your Password - Silte Lmat Mehber',
       html: `
         <!DOCTYPE html>
         <html>
@@ -320,9 +320,9 @@ export const sendPasswordResetEmail = async (email, name, token) => {
 export const sendWelcomeEmail = async (email, name, membershipId) => {
   try {
     const mailOptions = {
-      from: `"Silte Ləmat Mehber" <${process.env.SMTP_FROM}>`,
+      from: `"Silte Lmat Mehber" <${process.env.SMTP_FROM}>`,
       to: email,
-      subject: 'Welcome to Silte Ləmat Mehber!',
+      subject: 'Welcome to Silte Lmat Mehber!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -379,7 +379,7 @@ export const sendWelcomeEmail = async (email, name, membershipId) => {
         </body>
         </html>
       `,
-      text: `Hello ${name},\n\nWelcome to Silte Ləmat Mehber! Your account is now verified.\n\nYour Membership ID: ${membershipId}\n\nYou can now:\n- Connect with community members\n- Attend events\n- Access exclusive resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nNeed help? Contact support@siltecommunity.org\n\nBest regards,\nThe SLMA Team`
+      text: `Hello ${name},\n\nWelcome to Silte Lmat Mehber! Your account is now verified.\n\nYour Membership ID: ${membershipId}\n\nYou can now:\n- Connect with community members\n- Attend events\n- Access exclusive resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nNeed help? Contact support@siltecommunity.org\n\nBest regards,\nThe SLMA Team`
     };
 
     const info = await transporter.sendMail(mailOptions);
