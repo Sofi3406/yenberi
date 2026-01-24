@@ -9,10 +9,10 @@ import errorHandler from './middlewares/errorHandler.js';
 // Import routes
 import authRoutes from './routes/auth.js';
 import donationRoutes from './routes/donationRoutes.js';
-import eventRoutes from './routes/events.js'; // ✅ Event routes (includes admin endpoints)
+import eventRoutes from './routes/events.js'; 
 import adminUsersRoutes from './routes/adminUsers.js';
-import adminRoutes from './routes/admin.js'; // ✅ Admin routes (dashboard, payments, etc.)
-import galleryRoutes from './routes/galleries.js'; // Gallery routes (admin + public)
+import adminRoutes from './routes/admin.js'; 
+import galleryRoutes from './routes/galleries.js';
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
 

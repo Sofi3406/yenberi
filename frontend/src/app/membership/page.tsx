@@ -153,8 +153,8 @@ export default function MembershipPage() {
   };
 
   const communityStats = [
-    { number: "2,500+", label: "Active Members" },
-    { number: "12", label: "Countries Represented" },
+    { number: "25+", label: "Active Members" },
+    { number: "12+", label: "Woredas Represented" },
     { number: "45+", label: "Annual Events" },
     { number: "15", label: "Community Projects" }
   ];
