@@ -1,12 +1,26 @@
 import api from './api';
 
+export type MaritalStatus = 'single' | 'married';
+export type UserType = 'student' | 'employee';
+export type Profession =
+  | 'medicine' | 'computer_science' | 'software_engineer' | 'biomedical_engineer'
+  | 'civil' | 'mechanical' | 'pharmacist' | 'laboratory' | 'midwifery' | 'nursing'
+  | 'health_officer' | 'other';
+
 export interface RegisterData {
   name: string;
+  fatherName: string;
   email: string;
   password: string;
   phone?: string;
+  woreda?: string;
   zone?: string;
   language?: 'en' | 'am' | 'silt';
+  maritalStatus: MaritalStatus;
+  userType: UserType;
+  currentResident?: string;
+  profession: Profession;
+  membershipPlan?: string;
 }
 
 export interface LoginData {
@@ -17,6 +31,7 @@ export interface LoginData {
 export interface User {
   id: string;
   name: string;
+  fatherName?: string;
   email: string;
   role: 'member' | 'woreda_admin' | 'super_admin';
   membership: {
@@ -28,6 +43,11 @@ export interface User {
   };
   language: 'en' | 'am' | 'silt';
   emailVerified: boolean;
+  maritalStatus?: MaritalStatus;
+  userType?: UserType;
+  currentResident?: string;
+  profession?: Profession;
+  profile?: { photo?: string; bio?: string; occupation?: string; location?: string };
 }
 
 // Helper functions with SSR safety
@@ -47,9 +67,11 @@ const safeLocalStorage = {
 };
 
 export const authService = {
-  // Register user
-  register: async (data: RegisterData) => {
-    const response = await api.post('/auth/register', data);
+  // Register user (use FormData with userData + nationalId + profileImage + optional receipt)
+  register: async (formData: FormData) => {
+    const response = await api.post('/auth/register', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     if (response.data.token) {
       safeLocalStorage.setItem('slma_token', response.data.token);
       safeLocalStorage.setItem('slma_user', JSON.stringify(response.data.user));

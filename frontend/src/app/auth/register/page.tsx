@@ -27,6 +27,34 @@ const membershipPlans = [
   { id: 'premium', name: 'Premium Member', price: 1200, description: 'ETB 1,200/year' },
 ];
 
+// Marital status & user type
+const maritalOptions = [
+  { id: '', name: 'Select status' },
+  { id: 'single', name: 'Single' },
+  { id: 'married', name: 'Married' },
+];
+const userTypeOptions = [
+  { id: '', name: 'Select type' },
+  { id: 'student', name: 'Student' },
+  { id: 'employee', name: 'Employee' },
+];
+// Professions
+const professions = [
+  { id: '', name: 'Select profession' },
+  { id: 'medicine', name: 'Medicine' },
+  { id: 'computer_science', name: 'Computer Science' },
+  { id: 'software_engineer', name: 'Software Engineer' },
+  { id: 'biomedical_engineer', name: 'Biomedical Engineer' },
+  { id: 'civil', name: 'Civil Engineering' },
+  { id: 'mechanical', name: 'Mechanical Engineering' },
+  { id: 'pharmacist', name: 'Pharmacist' },
+  { id: 'laboratory', name: 'Laboratory' },
+  { id: 'midwifery', name: 'Midwifery' },
+  { id: 'nursing', name: 'Nursing' },
+  { id: 'health_officer', name: 'Health Officer' },
+  { id: 'other', name: 'Other' },
+];
+
 const RegistrationForm = () => {
   const { language, t } = useLanguage();
   const router = useRouter();
@@ -40,6 +68,7 @@ const RegistrationForm = () => {
 
   const [formData, setFormData] = useState({
     name: '',
+    fatherName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -47,12 +76,22 @@ const RegistrationForm = () => {
     woreda: '',
     membershipPlan: 'active',
     language: language,
+    maritalStatus: '',
+    userType: '',
+    currentResident: '',
+    profession: '',
     agreeToTerms: false,
   });
 
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
+  const [nationalIdPreview, setNationalIdPreview] = useState<string | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const nationalIdInputRef = useRef<HTMLInputElement>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
 
   // Update language when context changes
   useEffect(() => {
@@ -81,44 +120,81 @@ const RegistrationForm = () => {
     }
   };
 
+  const validFileTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
+    if (!validFileTypes.includes(file.type)) {
       setErrors(prev => ({ ...prev, receipt: 'Please upload JPG, PNG, or PDF file' }));
       return;
     }
-
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > maxFileSize) {
       setErrors(prev => ({ ...prev, receipt: 'File size must be less than 5MB' }));
       return;
     }
-
     setReceiptFile(file);
     setErrors(prev => ({ ...prev, receipt: '' }));
-
-    // Create preview for images
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setReceiptPreview(reader.result as string);
-      };
+      reader.onloadend = () => setReceiptPreview(reader.result as string);
       reader.readAsDataURL(file);
-    } else {
-      setReceiptPreview(null);
+    } else setReceiptPreview(null);
+  };
+
+  const handleNationalIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!validFileTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, nationalId: 'Please upload JPG, PNG, or PDF' }));
+      return;
     }
+    if (file.size > maxFileSize) {
+      setErrors(prev => ({ ...prev, nationalId: 'File size must be less than 5MB' }));
+      return;
+    }
+    setNationalIdFile(file);
+    setErrors(prev => ({ ...prev, nationalId: '' }));
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => setNationalIdPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else setNationalIdPreview(null);
+  };
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({ ...prev, profileImage: 'Please upload an image (JPG, PNG)' }));
+      return;
+    }
+    if (file.size > maxFileSize) {
+      setErrors(prev => ({ ...prev, profileImage: 'File size must be less than 5MB' }));
+      return;
+    }
+    setProfileImageFile(file);
+    setErrors(prev => ({ ...prev, profileImage: '' }));
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   const removeFile = () => {
     setReceiptFile(null);
     setReceiptPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+  const removeNationalId = () => {
+    setNationalIdFile(null);
+    setNationalIdPreview(null);
+    if (nationalIdInputRef.current) nationalIdInputRef.current.value = '';
+  };
+  const removeProfileImage = () => {
+    setProfileImageFile(null);
+    setProfileImagePreview(null);
+    if (profileImageInputRef.current) profileImageInputRef.current.value = '';
   };
 
   const validateForm = () => {
@@ -128,6 +204,12 @@ const RegistrationForm = () => {
       newErrors.name = 'Name is required';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
+    }
+    
+    if (!formData.fatherName?.trim()) {
+      newErrors.fatherName = 'Father name is required';
+    } else if (formData.fatherName.trim().length < 2) {
+      newErrors.fatherName = 'Father name must be at least 2 characters';
     }
     
     if (!formData.email.trim()) {
@@ -160,7 +242,26 @@ const RegistrationForm = () => {
       newErrors.woreda = 'Please select your woreda';
     }
     
-    // Check if payment is required
+    if (!formData.maritalStatus) {
+      newErrors.maritalStatus = 'Please select marital status (Single or Married)';
+    }
+    
+    if (!formData.userType) {
+      newErrors.userType = 'Please select Student or Employee';
+    }
+    
+    if (!formData.profession) {
+      newErrors.profession = 'Please select your profession';
+    }
+    
+    if (!nationalIdFile) {
+      newErrors.nationalId = 'National ID document is required';
+    }
+    
+    if (!profileImageFile) {
+      newErrors.profileImage = 'Profile image is required';
+    }
+    
     const selectedPlan = membershipPlans.find(p => p.id === formData.membershipPlan);
     if (selectedPlan && selectedPlan.price > 0 && !receiptFile) {
       newErrors.receipt = 'Payment receipt is required for paid membership';
@@ -188,18 +289,22 @@ const RegistrationForm = () => {
     setUploadProgress(0);
     
     try {
-      const { confirmPassword, agreeToTerms, ...registrationData } = formData;
+      const { confirmPassword, agreeToTerms, ...rest } = formData;
+      const registrationData = {
+        ...rest,
+        fatherName: formData.fatherName,
+        maritalStatus: formData.maritalStatus,
+        userType: formData.userType,
+        currentResident: formData.currentResident || undefined,
+        profession: formData.profession,
+      };
       
-      // Create FormData for file upload
       const formDataToSend = new FormData();
-      
-      // Add user data
       formDataToSend.append('userData', JSON.stringify(registrationData));
       
-      // Add receipt file if exists
-      if (receiptFile) {
-        formDataToSend.append('receipt', receiptFile);
-      }
+      if (nationalIdFile) formDataToSend.append('nationalId', nationalIdFile);
+      if (profileImageFile) formDataToSend.append('profileImage', profileImageFile);
+      if (receiptFile) formDataToSend.append('receipt', receiptFile);
       
       const API_URL = 'http://localhost:5000';
       const endpoint = `${API_URL}/api/auth/register`;
@@ -264,12 +369,13 @@ const RegistrationForm = () => {
       
       setSuccessMessage(
         data.message || 
-        'Registration successful! Please check your email for verification.'
+        'Registration successful! Your account will be active after an admin verifies your email. You cannot use the system until then.'
       );
       
       // Clear form
       setFormData({
         name: '',
+        fatherName: '',
         email: '',
         password: '',
         confirmPassword: '',
@@ -277,10 +383,18 @@ const RegistrationForm = () => {
         woreda: '',
         membershipPlan: 'active',
         language: language,
+        maritalStatus: '',
+        userType: '',
+        currentResident: '',
+        profession: '',
         agreeToTerms: false,
       });
       setReceiptFile(null);
       setReceiptPreview(null);
+      setNationalIdFile(null);
+      setNationalIdPreview(null);
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
       setErrors({});
       
       // Store token and user data if provided
@@ -429,6 +543,26 @@ const RegistrationForm = () => {
                 <span id="name-error" className="error-message" role="alert">
                   {errors.name}
                 </span>
+              )}
+            </div>
+
+            {/* Father name */}
+            <div className="form-group">
+              <label htmlFor="fatherName" className="form-label">
+                Father Name *
+              </label>
+              <input
+                type="text"
+                id="fatherName"
+                name="fatherName"
+                value={formData.fatherName}
+                onChange={handleChange}
+                className={`input-field ${errors.fatherName ? 'input-error' : ''}`}
+                placeholder="Enter your father's name"
+                disabled={isLoading}
+              />
+              {errors.fatherName && (
+                <span className="error-message" role="alert">{errors.fatherName}</span>
               )}
             </div>
             
@@ -583,6 +717,173 @@ const RegistrationForm = () => {
                   {errors.woreda}
                 </span>
               )}
+            </div>
+
+            {/* Marital status */}
+            <div className="form-group">
+              <label htmlFor="maritalStatus" className="form-label">
+                Marital Status *
+              </label>
+              <select
+                id="maritalStatus"
+                name="maritalStatus"
+                value={formData.maritalStatus}
+                onChange={handleChange}
+                className={`input-field select-field ${errors.maritalStatus ? 'input-error' : ''}`}
+                disabled={isLoading}
+              >
+                {maritalOptions.map((o) => (
+                  <option key={o.id} value={o.id} disabled={!o.id}>{o.name}</option>
+                ))}
+              </select>
+              {errors.maritalStatus && (
+                <span className="error-message" role="alert">{errors.maritalStatus}</span>
+              )}
+            </div>
+
+            {/* User type (student / employee) */}
+            <div className="form-group">
+              <label htmlFor="userType" className="form-label">
+                Status (Student or Employee) *
+              </label>
+              <select
+                id="userType"
+                name="userType"
+                value={formData.userType}
+                onChange={handleChange}
+                className={`input-field select-field ${errors.userType ? 'input-error' : ''}`}
+                disabled={isLoading}
+              >
+                {userTypeOptions.map((o) => (
+                  <option key={o.id} value={o.id} disabled={!o.id}>{o.name}</option>
+                ))}
+              </select>
+              {errors.userType && (
+                <span className="error-message" role="alert">{errors.userType}</span>
+              )}
+            </div>
+
+            {/* Current resident */}
+            <div className="form-group">
+              <label htmlFor="currentResident" className="form-label">
+                Current Resident
+              </label>
+              <input
+                type="text"
+                id="currentResident"
+                name="currentResident"
+                value={formData.currentResident}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="e.g. city or address"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Profession */}
+            <div className="form-group">
+              <label htmlFor="profession" className="form-label">
+                Profession *
+              </label>
+              <select
+                id="profession"
+                name="profession"
+                value={formData.profession}
+                onChange={handleChange}
+                className={`input-field select-field ${errors.profession ? 'input-error' : ''}`}
+                disabled={isLoading}
+              >
+                {professions.map((p) => (
+                  <option key={p.id} value={p.id} disabled={!p.id}>{p.name}</option>
+                ))}
+              </select>
+              {errors.profession && (
+                <span className="error-message" role="alert">{errors.profession}</span>
+              )}
+            </div>
+
+            {/* National ID upload */}
+            <div className="form-group">
+              <label className="form-label">Upload National ID *</label>
+              <div className="receipt-upload-container">
+                <input
+                  type="file"
+                  ref={nationalIdInputRef}
+                  onChange={handleNationalIdChange}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  className="receipt-input"
+                  disabled={isLoading}
+                />
+                {!nationalIdFile ? (
+                  <div className="receipt-upload-area" onClick={() => nationalIdInputRef.current?.click()}>
+                    <Upload className="receipt-upload-icon" />
+                    <div className="receipt-upload-text">
+                      <div className="receipt-upload-title">Upload National ID</div>
+                      <div className="receipt-upload-subtitle">JPG, PNG or PDF (Max 5MB)</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="receipt-file-info">
+                    <div className="receipt-file-preview">
+                      {nationalIdPreview ? (
+                        <img src={nationalIdPreview} alt="National ID" className="receipt-preview-image" />
+                      ) : (
+                        <FileText className="receipt-file-icon" />
+                      )}
+                    </div>
+                    <div className="receipt-file-details">
+                      <div className="receipt-file-name">{nationalIdFile.name}</div>
+                    </div>
+                    <button type="button" onClick={removeNationalId} className="receipt-remove-button" disabled={isLoading}>
+                      <X className="receipt-remove-icon" />
+                    </button>
+                  </div>
+                )}
+                {errors.nationalId && (
+                  <span className="error-message" role="alert">{errors.nationalId}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Profile image upload */}
+            <div className="form-group">
+              <label className="form-label">Upload Profile Image *</label>
+              <div className="receipt-upload-container">
+                <input
+                  type="file"
+                  ref={profileImageInputRef}
+                  onChange={handleProfileImageChange}
+                  accept=".jpg,.jpeg,.png"
+                  className="receipt-input"
+                  disabled={isLoading}
+                />
+                {!profileImageFile ? (
+                  <div className="receipt-upload-area" onClick={() => profileImageInputRef.current?.click()}>
+                    <Upload className="receipt-upload-icon" />
+                    <div className="receipt-upload-text">
+                      <div className="receipt-upload-title">Upload Profile Image</div>
+                      <div className="receipt-upload-subtitle">JPG or PNG (Max 5MB)</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="receipt-file-info">
+                    <div className="receipt-file-preview">
+                      {profileImagePreview && (
+                        <img src={profileImagePreview} alt="Profile" className="receipt-preview-image" />
+                      )}
+                    </div>
+                    <div className="receipt-file-details">
+                      <div className="receipt-file-name">{profileImageFile.name}</div>
+                    </div>
+                    <button type="button" onClick={removeProfileImage} className="receipt-remove-button" disabled={isLoading}>
+                      <X className="receipt-remove-icon" />
+                    </button>
+                  </div>
+                )}
+                {errors.profileImage && (
+                  <span className="error-message" role="alert">{errors.profileImage}</span>
+                )}
+              </div>
             </div>
             
             {/* Membership Plan Selection */}

@@ -19,10 +19,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
+// Configure multer for registration uploads (national ID, profile image, receipt)
+const registrationStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../../uploads/receipts');
+    const basePath = path.join(__dirname, '../../uploads');
+    const subdir = file.fieldname === 'receipt' ? 'receipts' : 'registration';
+    const uploadPath = path.join(basePath, subdir);
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -30,7 +32,8 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    const prefix = file.fieldname === 'receipt' ? '' : file.fieldname + '-';
+    cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
@@ -42,205 +45,205 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({
-  storage: storage,
+const uploadRegistration = multer({
+  storage: registrationStorage,
   fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
-});
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB per file
+}).fields([
+  { name: 'nationalId', maxCount: 1 },
+  { name: 'profileImage', maxCount: 1 },
+  { name: 'receipt', maxCount: 1 }
+]);
 
-// @desc    Register user with payment receipt
+// Helper to clean up uploaded files
+function cleanupUploadedFiles(req) {
+  const files = req.files ? (Array.isArray(req.files) ? req.files : Object.values(req.files).flat()) : [];
+  if (req.file) files.push(req.file);
+  files.forEach(f => { if (f && f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); });
+}
+
+// @desc    Register user with national ID, profile image, and optional payment receipt
 // @route   POST /api/auth/register
 // @access  Public
 export const register = asyncHandler(async (req, res, next) => {
   try {
-    // Handle file upload first
-    upload.single('receipt')(req, res, async function(err) {
+    uploadRegistration(req, res, async function(err) {
       if (err instanceof multer.MulterError) {
-        return res.status(400).json({
-          success: false,
-          message: 'File upload error',
-          error: err.message
-        });
-      } else if (err) {
-        return res.status(400).json({
-          success: false,
-          message: err.message
-        });
+        cleanupUploadedFiles(req);
+        return res.status(400).json({ success: false, message: 'File upload error', error: err.message });
+      }
+      if (err) {
+        cleanupUploadedFiles(req);
+        return res.status(400).json({ success: false, message: err.message });
       }
 
       try {
-        // Parse user data from FormData
         let userData;
         try {
           userData = JSON.parse(req.body.userData || '{}');
         } catch (parseError) {
-          // Clean up uploaded file if parsing fails
-          if (req.file) {
-            fs.unlinkSync(req.file.path);
-          }
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid user data format'
-          });
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid user data format' });
         }
 
-        const { name, email, password, phone, woreda, membershipPlan, language } = userData;
+        const {
+          name, fatherName, email, password, phone, woreda, membershipPlan, language,
+          maritalStatus, userType, currentResident, profession
+        } = userData;
 
-        console.log('📝 Registration attempt:', { 
-          name: name ? `${name.substring(0, 10)}...` : 'missing', 
-          email: email ? `${email.substring(0, 10)}...` : 'missing', 
-          phone: phone ? `${phone.substring(0, 6)}...` : 'missing',
-          woreda: woreda || 'missing',
-          membershipPlan: membershipPlan || 'active'
-        });
+        const nationalIdFile = req.files?.nationalId?.[0];
+        const profileImageFile = req.files?.profileImage?.[0];
+        const receiptFile = req.files?.receipt?.[0];
 
         // Validate required fields
-        if (!name || !email || !password || !phone || !woreda || !membershipPlan) {
-          const missingFields = [];
-          if (!name) missingFields.push('name');
-          if (!email) missingFields.push('email');
-          if (!password) missingFields.push('password');
-          if (!phone) missingFields.push('phone');
-          if (!woreda) missingFields.push('woreda');
-          if (!membershipPlan) missingFields.push('membershipPlan');
-          
-          // Clean up uploaded file if validation fails
-          if (req.file) {
-            fs.unlinkSync(req.file.path);
-          }
-          
+        const missing = [];
+        if (!name) missing.push('name');
+        if (!fatherName) missing.push('fatherName');
+        if (!email) missing.push('email');
+        if (!password) missing.push('password');
+        if (!phone) missing.push('phone');
+        if (!woreda) missing.push('woreda');
+        if (!membershipPlan) missing.push('membershipPlan');
+        if (!maritalStatus) missing.push('maritalStatus');
+        if (!userType) missing.push('userType');
+        if (!profession) missing.push('profession');
+        if (!nationalIdFile) missing.push('nationalId (upload required)');
+        if (!profileImageFile) missing.push('profileImage (upload required)');
+
+        if (missing.length) {
+          cleanupUploadedFiles(req);
           return res.status(400).json({
             success: false,
-            message: `Missing required fields: ${missingFields.join(', ')}`,
+            message: `Missing required: ${missing.join(', ')}`,
             errors: {
               name: !name ? 'Name is required' : undefined,
+              fatherName: !fatherName ? 'Father name is required' : undefined,
               email: !email ? 'Email is required' : undefined,
               password: !password ? 'Password is required' : undefined,
               phone: !phone ? 'Phone is required' : undefined,
               woreda: !woreda ? 'Woreda is required' : undefined,
               membershipPlan: !membershipPlan ? 'Membership plan is required' : undefined,
+              maritalStatus: !maritalStatus ? 'Marital status is required' : undefined,
+              userType: !userType ? 'Student or Employee is required' : undefined,
+              profession: !profession ? 'Profession is required' : undefined,
+              nationalId: !nationalIdFile ? 'National ID document is required' : undefined,
+              profileImage: !profileImageFile ? 'Profile image is required' : undefined,
             }
           });
         }
 
-        // Validate email format
         const emailRegex = /\S+@\S+\.\S+/;
         if (!emailRegex.test(email)) {
-          if (req.file) fs.unlinkSync(req.file.path);
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid email format',
-            errors: { email: 'Please enter a valid email address' }
-          });
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid email format', errors: { email: 'Please enter a valid email address' } });
         }
 
-        // Check if user exists
         const userExists = await User.findOne({ email: email.toLowerCase() }).session(null);
         if (userExists) {
-          if (req.file) fs.unlinkSync(req.file.path);
-          return res.status(409).json({
-            success: false,
-            message: 'User already exists',
-            errors: { email: 'Email already registered' }
-          });
+          cleanupUploadedFiles(req);
+          return res.status(409).json({ success: false, message: 'User already exists', errors: { email: 'Email already registered' } });
         }
 
-        // Validate password
         if (password.length < 8) {
-          if (req.file) fs.unlinkSync(req.file.path);
-          return res.status(400).json({
-            success: false,
-            message: 'Password must be at least 8 characters',
-            errors: { password: 'Password must be at least 8 characters' }
-          });
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Password must be at least 8 characters', errors: { password: 'Password must be at least 8 characters' } });
         }
 
-        // Validate membership plan
         const validPlans = ['basic', 'active', 'premium'];
         if (!validPlans.includes(membershipPlan)) {
-          if (req.file) fs.unlinkSync(req.file.path);
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid membership plan',
-            errors: { membershipPlan: 'Please select a valid membership plan' }
-          });
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid membership plan', errors: { membershipPlan: 'Please select a valid membership plan' } });
         }
 
-        // Check receipt requirement for paid plans
-        if ((membershipPlan === 'active' || membershipPlan === 'premium') && !req.file) {
-          return res.status(400).json({
-            success: false,
-            message: 'Payment receipt is required for paid membership',
-            errors: { receipt: 'Please upload your payment receipt' }
-          });
+        const validMarital = ['single', 'married'];
+        if (!validMarital.includes(maritalStatus)) {
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid marital status', errors: { maritalStatus: 'Select single or married' } });
         }
 
-        // Create verification token
+        const validUserType = ['student', 'employee'];
+        if (!validUserType.includes(userType)) {
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid user type', errors: { userType: 'Select student or employee' } });
+        }
+        const validProfessions = ['medicine', 'computer_science', 'software_engineer', 'biomedical_engineer', 'civil', 'mechanical', 'pharmacist', 'laboratory', 'midwifery', 'nursing', 'health_officer', 'other'];
+        if (!validProfessions.includes(profession)) {
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid profession', errors: { profession: 'Please select a valid profession' } });
+        }
+
+        if ((membershipPlan === 'active' || membershipPlan === 'premium') && !receiptFile) {
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Payment receipt is required for paid membership', errors: { receipt: 'Please upload your payment receipt' } });
+        }
+
         const verificationToken = crypto.randomBytes(20).toString('hex');
-
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Prepare user data
         const userDataToSave = {
           name,
+          fatherName: fatherName || undefined,
           email: email.toLowerCase(),
           password: hashedPassword,
           phone,
           woreda,
           membershipPlan,
           language: language || 'en',
+          maritalStatus,
+          userType,
+          currentResident: currentResident || undefined,
+          profession,
           verificationToken,
+          nationalId: {
+            filename: nationalIdFile.filename,
+            originalName: nationalIdFile.originalname,
+            path: nationalIdFile.path,
+            mimetype: nationalIdFile.mimetype,
+            size: nationalIdFile.size,
+          },
+          profile: {
+            photo: 'registration/' + profileImageFile.filename,
+          },
         };
 
-        // Add payment receipt info if file exists
-        if (req.file) {
+        if (receiptFile) {
           userDataToSave.payment = {
             receipt: {
-              filename: req.file.filename,
-              originalName: req.file.originalname,
-              path: req.file.path,
-              mimetype: req.file.mimetype,
-              size: req.file.size,
+              filename: receiptFile.filename,
+              originalName: receiptFile.originalname,
+              path: receiptFile.path,
+              mimetype: receiptFile.mimetype,
+              size: receiptFile.size,
             },
-            method: 'cbe', // Default to CBE
+            method: 'cbe',
             status: 'pending',
           };
         }
 
-        // Create user
         const user = new User(userDataToSave);
         await user.save({ validateBeforeSave: false });
 
         console.log('✅ User created successfully with ID:', user._id);
 
-        // Generate token
         const token = generateToken(user._id, user.role);
 
-        // Send verification email
+        // Optional: notify user that admin will verify (no self-verify link)
         try {
           if (sendVerificationEmail) {
             await sendVerificationEmail(user.email, user.name, verificationToken);
-            console.log('📧 Verification email sent to:', user.email);
           }
         } catch (emailError) {
           console.warn('⚠️ Failed to send verification email:', emailError.message);
         }
-
-        // Send payment verification email for paid members
         if ((membershipPlan === 'active' || membershipPlan === 'premium') && sendPaymentVerificationEmail) {
           try {
             await sendPaymentVerificationEmail(user.email, user.name, membershipPlan, user.membership.membershipId);
-            console.log('💰 Payment verification email sent');
           } catch (emailError) {
             console.warn('⚠️ Failed to send payment verification email:', emailError.message);
           }
         }
 
-        // Create activity for registration
         try {
           await Activity.create({
             user: user._id,
@@ -252,10 +255,10 @@ export const register = asyncHandler(async (req, res, next) => {
           console.warn('Failed to create registration activity:', actErr.message);
         }
 
-        // Prepare response
         const userResponse = {
           id: user._id,
           name: user.name,
+          fatherName: user.fatherName,
           email: user.email,
           phone: user.phone,
           woreda: user.woreda,
@@ -264,46 +267,30 @@ export const register = asyncHandler(async (req, res, next) => {
           role: user.role,
           language: user.language,
           emailVerified: user.emailVerified,
+          maritalStatus: user.maritalStatus,
+          userType: user.userType,
+          currentResident: user.currentResident,
+          profession: user.profession,
         };
 
         res.status(201).json({
           success: true,
-          message: membershipPlan === 'basic' 
-            ? 'Registration successful! Please check your email for verification.'
-            : 'Registration successful! Your payment receipt is under review. Please check your email for verification.',
+          message: 'Registration successful! Your account will be active after an admin verifies your email. You will not be able to use the system until then.',
           token,
           user: userResponse,
         });
 
       } catch (error) {
-        // Clean up uploaded file on error
-        if (req.file) {
-          fs.unlinkSync(req.file.path);
-        }
+        cleanupUploadedFiles(req);
         console.error('🔥 Registration controller error:', error);
-        
-        // Handle specific errors
         if (error.code === 11000) {
-          return res.status(409).json({
-            success: false,
-            message: 'Email already exists',
-            errors: { email: 'Email already registered' }
-          });
+          return res.status(409).json({ success: false, message: 'Email already exists', errors: { email: 'Email already registered' } });
         }
-        
         if (error.name === 'ValidationError') {
           const errors = {};
-          Object.keys(error.errors).forEach(key => {
-            errors[key] = error.errors[key].message;
-          });
-          
-          return res.status(400).json({
-            success: false,
-            message: 'Validation failed',
-            errors
-          });
+          Object.keys(error.errors).forEach(key => { errors[key] = error.errors[key].message; });
+          return res.status(400).json({ success: false, message: 'Validation failed', errors });
         }
-        
         next(error);
       }
     });
@@ -352,6 +339,15 @@ export const login = asyncHandler(async (req, res, next) => {
       });
     }
 
+    // Block access until admin has verified email
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your email has not been verified yet. Please wait for admin verification before you can use the system.',
+        code: 'EMAIL_NOT_VERIFIED',
+      });
+    }
+
     // Check password
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
@@ -368,11 +364,11 @@ export const login = asyncHandler(async (req, res, next) => {
 
     // Generate token
     const token = generateToken(user._id, user.role);
-
     // Prepare user response
     const userResponse = {
       id: user._id,
       name: user.name,
+      fatherName: user.fatherName,
       email: user.email,
       phone: user.phone,
       woreda: user.woreda || 'worabe',
@@ -382,6 +378,11 @@ export const login = asyncHandler(async (req, res, next) => {
       language: user.language,
       emailVerified: user.emailVerified,
       isActive: user.isActive,
+      maritalStatus: user.maritalStatus,
+      userType: user.userType,
+      currentResident: user.currentResident,
+      profession: user.profession,
+      profile: user.profile,
       payment: {
         status: user.payment?.status || 'none',
       }
@@ -584,6 +585,7 @@ export const getMe = asyncHandler(async (req, res, next) => {
       user: {
         id: user._id,
         name: user.name,
+        fatherName: user.fatherName,
         email: user.email,
         phone: user.phone,
         woreda: user.woreda || 'worabe',
@@ -594,6 +596,10 @@ export const getMe = asyncHandler(async (req, res, next) => {
         emailVerified: user.emailVerified,
         isActive: user.isActive,
         profile: user.profile,
+        maritalStatus: user.maritalStatus,
+        userType: user.userType,
+        currentResident: user.currentResident,
+        profession: user.profession,
         payment: {
           status: user.payment?.status || 'none',
         }
@@ -658,7 +664,6 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     } catch (actErr) {
       console.warn('Failed to create profile update activity:', actErr.message);
     }
-
     res.json({
       success: true,
       message: 'Profile updated successfully',

@@ -25,6 +25,16 @@ export const protect = async (req, res, next) => {
         });
       }
 
+      // Members must have email verified by admin before using the system
+      const isMember = req.user.role === 'member';
+      if (isMember && !req.user.emailVerified) {
+        return res.status(403).json({
+          success: false,
+          message: 'Your email has not been verified yet. Please wait for admin verification before you can use the system.',
+          code: 'EMAIL_NOT_VERIFIED',
+        });
+      }
+
       next();
     } catch (error) {
       console.error('Auth middleware error:', error);

@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, Mail, Lock, AlertCircle, Quote, Users, Target, Heart, Star, MapPin, Navigation } from 'lucide-react';
 import { authService } from '@/services/authService';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const unverified = searchParams.get('unverified') === '1';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -100,13 +102,18 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error('Login error:', err);
       setLoading(false);
-      
-      if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
+      const status = err.response?.status;
+      const data = err.response?.data;
+      if (status === 403 && data?.code === 'EMAIL_NOT_VERIFIED') {
+        setError(data.message || 'Your email has not been verified yet. Please wait for admin verification before you can use the system.');
+        return;
+      }
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('Network')) {
         setError('Cannot connect to server. Please try again.');
-      } else if (err.message.includes('401') || err.message.includes('Invalid')) {
+      } else if (status === 401 || err.message?.includes('Invalid')) {
         setError('Invalid email or password.');
       } else {
-        setError(err.message || 'Login failed. Please try again.');
+        setError(data?.message || err.message || 'Login failed. Please try again.');
       }
     }
   };
@@ -138,6 +145,14 @@ export default function LoginPage() {
               </div>
             )}
 
+            {unverified && (
+              <div className="login-error-message" style={{ backgroundColor: 'var(--warning-bg, #fef3c7)', color: 'var(--warning-text, #92400e)' }}>
+                <AlertCircle className="login-error-icon" />
+                <div className="login-error-content">
+                  <strong>Email not verified.</strong> Your account must be verified by an admin before you can use the system. Please wait for verification or contact support.
+                </div>
+              </div>
+            )}
             {error && (
               <div className="login-error-message">
                 <AlertCircle className="login-error-icon" />

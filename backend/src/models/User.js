@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 
+const professionEnum = [
+  'medicine', 'computer_science', 'software_engineer', 'biomedical_engineer',
+  'civil', 'mechanical', 'pharmacist', 'laboratory', 'midwifery', 'nursing',
+  'health_officer', 'other'
+];
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -8,6 +14,11 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Name is required'],
       trim: true,
       maxlength: [100, 'Name cannot exceed 100 characters'],
+    },
+    fatherName: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Father name cannot exceed 100 characters'],
     },
     email: {
       type: String,
@@ -98,6 +109,31 @@ const userSchema = new mongoose.Schema(
       photo: String,
       occupation: String,
       location: String,
+    },
+    // National ID document (uploaded at registration)
+    nationalId: {
+      filename: String,
+      originalName: String,
+      path: String,
+      mimetype: String,
+      size: Number,
+    },
+    maritalStatus: {
+      type: String,
+      enum: ['single', 'married'],
+    },
+    userType: {
+      type: String,
+      enum: ['student', 'employee'],
+    },
+    currentResident: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Current resident cannot exceed 200 characters'],
+    },
+    profession: {
+      type: String,
+      enum: professionEnum,
     },
     language: {
       type: String,

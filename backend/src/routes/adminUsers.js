@@ -34,6 +34,13 @@ router.get('/', asyncHandler(async (req, res) => {
   res.json({ success: true, users, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 }));
 
+// GET /api/admin/users/:id - get single user full details (for admin to view before/after verify)
+router.get('/:id', asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select('-password');
+  if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+  res.json({ success: true, user });
+}));
+
 // POST /api/admin/users - create new user (admin can create any role)
 router.post('/', asyncHandler(async (req, res) => {
   const { name, email, password, phone, role = 'member', woreda = 'worabe', membershipPlan = 'active' } = req.body;
@@ -102,6 +109,29 @@ router.put('/:id/role', asyncHandler(async (req, res) => {
   }
 
   res.json({ success: true, message: 'Role updated', user: { id: user._id, role: user.role } });
+}));
+
+// PUT /api/admin/users/:id/verify - verify user email (allow system access)
+router.put('/:id/verify', asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+  user.emailVerified = true;
+  user.verificationToken = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    await Activity.create({
+      user: req.user.id,
+      type: 'admin_action',
+      description: `Verified email for user ${user.email}`,
+      metadata: { action: 'verify_email', targetUser: user._id, targetEmail: user.email }
+    });
+  } catch (err) {
+    console.warn('Failed to log admin activity:', err.message);
+  }
+
+  res.json({ success: true, message: 'User email verified. They can now access the system.', user: { id: user._id, emailVerified: true } });
 }));
 
 // PUT /api/admin/users/:id/status - activate/deactivate user

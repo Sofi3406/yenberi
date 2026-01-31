@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authService } from '@/services/authService';
+import api from '@/services/api';
 import { activitiesApi } from '@/services/activitiesApi';
 import ActivityFeed from '@/components/features/activity/ActivityFeed';
 import { 
@@ -90,8 +91,20 @@ export default function DashboardPage() {
 
         console.log('User authenticated, fetching data...');
         
-        // Use the user from localStorage
-        setUser(currentUser);
+        // Fetch full profile from API (includes all registration fields)
+        try {
+          const meRes = await api.get('/auth/me');
+          if (meRes.data?.user) {
+            setUser(meRes.data.user);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('slma_user', JSON.stringify(meRes.data.user));
+            }
+          } else {
+            setUser(currentUser);
+          }
+        } catch {
+          setUser(currentUser);
+        }
 
         // Set mock stats for now (replace with actual API calls)
         setStats({
@@ -414,53 +427,88 @@ export default function DashboardPage() {
 
           {/* Right Column */}
           <div className="side-column">
-            {/* Profile Summary */}
+            {/* Profile Summary - all registration info visible after admin verification */}
             <div className="profile-card">
               <div className="profile-content">
                 <div className="profile-header">
-                  <div className="profile-avatar">
-                    {user.name.charAt(0)}
-                  </div>
+                  {user.profile?.photo ? (
+                    <img
+                      src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '')}/uploads/${user.profile.photo}`}
+                      alt={user.name}
+                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <div className="profile-avatar">
+                      {user.name?.charAt(0) || '?'}
+                    </div>
+                  )}
                   <div className="profile-info">
                     <h3>{user.name}</h3>
-                    <p>{user.email}</p>
+                    <p className="text-sm text-gray-600">{user.email}</p>
                     <p className="profile-role">{user.role} Member</p>
                   </div>
                 </div>
 
-                <div className="profile-details">
+                <div className="profile-details border-t pt-4 mt-4 space-y-2">
                   <div className="detail-row">
                     <span className="detail-label">Email Verified</span>
                     <span className={`status-badge ${user.emailVerified ? 'status-active' : 'status-pending'}`}>
                       {user.emailVerified ? 'Verified' : 'Pending'}
                     </span>
                   </div>
-                  
-                  <div className="detail-row">
-                    <span className="detail-label">Language</span>
-                    <span className="detail-value">
-                      {language === 'en' ? 'English' : language === 'am' ? 'Amharic' : 'Silte'}
-                    </span>
-                  </div>
-
-                  {user.profile?.occupation && (
+                  {user.fatherName && (
                     <div className="detail-row">
-                      <span className="detail-label">Occupation</span>
-                      <span className="detail-value">{user.profile.occupation}</span>
+                      <span className="detail-label">Father Name</span>
+                      <span className="detail-value">{user.fatherName}</span>
                     </div>
                   )}
-
                   {user.phone && (
                     <div className="detail-row">
                       <span className="detail-label">Phone</span>
                       <span className="detail-value">{user.phone}</span>
                     </div>
                   )}
+                  {user.woreda && (
+                    <div className="detail-row">
+                      <span className="detail-label">Woreda</span>
+                      <span className="detail-value capitalize">{user.woreda.replace(/-/g, ' ')}</span>
+                    </div>
+                  )}
+                  {user.maritalStatus && (
+                    <div className="detail-row">
+                      <span className="detail-label">Marital Status</span>
+                      <span className="detail-value capitalize">{user.maritalStatus}</span>
+                    </div>
+                  )}
+                  {user.userType && (
+                    <div className="detail-row">
+                      <span className="detail-label">Status</span>
+                      <span className="detail-value capitalize">{user.userType}</span>
+                    </div>
+                  )}
+                  {user.currentResident && (
+                    <div className="detail-row">
+                      <span className="detail-label">Current Resident</span>
+                      <span className="detail-value">{user.currentResident}</span>
+                    </div>
+                  )}
+                  {user.profession && (
+                    <div className="detail-row">
+                      <span className="detail-label">Profession</span>
+                      <span className="detail-value capitalize">{user.profession.replace(/_/g, ' ')}</span>
+                    </div>
+                  )}
+                  <div className="detail-row">
+                    <span className="detail-label">Language</span>
+                    <span className="detail-value">
+                      {language === 'en' ? 'English' : language === 'am' ? 'Amharic' : 'Silte'}
+                    </span>
+                  </div>
                 </div>
 
                 <button
                   onClick={handleLogout}
-                  className="logout-button"
+                  className="logout-button mt-4"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
