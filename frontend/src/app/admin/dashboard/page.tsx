@@ -262,34 +262,6 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
-
-        {/* Recent Activity Section */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Payment verified</p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <UserCheck className="w-5 h-5 text-blue-600" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">New user registered</p>
-                <p className="text-xs text-gray-500">5 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <Calendar className="w-5 h-5 text-purple-600" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Event created</p>
-                <p className="text-xs text-gray-500">1 day ago</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

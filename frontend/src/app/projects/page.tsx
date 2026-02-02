@@ -16,7 +16,9 @@ import {
   Zap,
   Filter,
   Eye,
-  Download
+  Download,
+  Activity,
+  Heart as HealthIcon
 } from 'lucide-react';
 
 export default function ProjectsPage() {
@@ -29,6 +31,7 @@ export default function ProjectsPage() {
     { id: 'community', label: 'Community Development' },
     { id: 'youth', label: 'Youth Empowerment' },
     { id: 'heritage', label: 'Heritage Conservation' },
+    { id: 'health', label: 'Health & Wellness' }, // Added Health category
   ];
 
   const projects = [
@@ -116,10 +119,39 @@ export default function ProjectsPage() {
       imageColor: "bg-cyan-100",
       icon: <Globe className="w-6 h-6 text-cyan-600" />
     },
+    // NEW HEALTH PROJECTS
+    {
+      id: 7,
+      title: "Community Health Outreach",
+      description: "Mobile health clinics providing basic healthcare services, health education, and preventive care to rural Silte communities.",
+      category: "health",
+      status: "active",
+      location: "Rural Communities",
+      timeline: "2023-2024",
+      participants: 18,
+      progress: 80,
+      impact: "Improved healthcare access",
+      imageColor: "bg-pink-100",
+      icon: <HealthIcon className="w-6 h-6 text-pink-600" />
+    },
+    {
+      id: 8,
+      title: "Mental Health Awareness Program",
+      description: "Promoting mental health awareness and providing counseling services to address community mental health challenges.",
+      category: "health",
+      status: "upcoming",
+      location: "All Woredas",
+      timeline: "2025",
+      participants: 0,
+      progress: 15,
+      impact: "Mental wellness",
+      imageColor: "bg-rose-100",
+      icon: <Activity className="w-6 h-6 text-rose-600" />
+    },
   ];
 
   const featuredProject = {
-    id: 7,
+    id: 9,
     title: "Hayrenzi Cultural Revival Project",
     description: "Preserving and promoting Silte heritage through traditional crafts, music, and community gatherings that reconnect our people with their roots.",
     category: "culture",
@@ -165,7 +197,7 @@ export default function ProjectsPage() {
           <h1 className="projects-title">Community Projects & Initiatives</h1>
           <p className="projects-subtitle">
             Discover how SLMA is making a difference through cultural preservation, 
-            education, and community development projects. Each initiative brings 
+            education, health, and community development projects. Each initiative brings 
             us closer to our vision of a thriving Silte community.
           </p>
           <p className="projects-tagline">

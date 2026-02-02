@@ -164,7 +164,7 @@ export default function MembershipPage() {
       <div className="membership-container">
         {/* Header */}
         <div className="membership-header">
-          <h1 className="membership-title">Join the Silte Ləmat Mehber Association</h1>
+          <h1 className="membership-title">Join the Silte Lmat Mehber Association</h1>
           <p className="membership-subtitle">
             Become part of a vibrant community dedicated to preserving Silte heritage, 
             fostering connections, and driving positive change. Choose the membership 

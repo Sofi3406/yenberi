@@ -20,6 +20,7 @@ const Header = () => {
     { href: '/gallery', label: t('nav.gallery') },
     { href: '/projects', label: t('nav.projects') },
     { href: '/donate', label: t('nav.donate') },
+    {href: '/co-founders', label: t('nav.co-founders')}
   ];
 
   // Add admin area link if current user is admin
