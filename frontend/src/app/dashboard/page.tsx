@@ -18,7 +18,8 @@ import {
   LogOut,
   User as UserIcon,
   Activity,
-  MapPin
+  MapPin,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 // Format date helper
@@ -50,10 +51,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [nextPaymentDue, setNextPaymentDue] = useState<string | null>(null);
 
-  // Set mounted state for client-only rendering
+  // Set mounted state and compute client-only values (avoids hydration mismatch)
   useEffect(() => {
     setMounted(true);
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    d.setDate(1);
+    setNextPaymentDue(format(d, 'd MMMM yyyy'));
   }, []);
 
   // Fetch all dashboard data
@@ -96,9 +102,7 @@ export default function DashboardPage() {
           const meRes = await api.get('/auth/me');
           if (meRes.data?.user) {
             setUser(meRes.data.user);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('slma_user', JSON.stringify(meRes.data.user));
-            }
+            localStorage.setItem('slma_user', JSON.stringify(meRes.data.user));
           } else {
             setUser(currentUser);
           }
@@ -199,17 +203,8 @@ export default function DashboardPage() {
     }
   };
 
-  // Don't render anything until mounted to avoid hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="loading-container">
-        <div className="text-center">
-          <div className="loading-spinner h-12 w-12"></div>
-          <p className="loading-text">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  // Return null until mounted - ensures server and client match (avoids hydration error)
+  if (!mounted) return null;
 
   if (loading) {
     return (
@@ -261,7 +256,7 @@ export default function DashboardPage() {
     },
     { 
       label: 'Member Since', 
-      value: formatDate(user.createdAt || new Date().toISOString()), 
+      value: user.createdAt ? formatDate(user.createdAt) : '—', 
       icon: <Calendar className="text-blue-600 w-6 h-6" />
     },
     { 
@@ -388,12 +383,22 @@ export default function DashboardPage() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Started</p>
-                      <p className="font-medium">{formatDate(user.createdAt)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Woreda</p>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Started</p>
+                    <p className="font-medium">{formatDate(user.createdAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Payment Due</p>
+                    <p className="font-medium" suppressHydrationWarning>
+                      {user.membership?.status === 'active'
+                        ? (nextPaymentDue || '—')
+                        : user.membership?.endDate
+                          ? formatDate(user.membership.endDate)
+                          : (nextPaymentDue || '—')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Woreda</p>
                       <p className="font-medium">{user.woreda || 'Not specified'}</p>
                     </div>
                   </div>
@@ -448,6 +453,20 @@ export default function DashboardPage() {
                     <p className="profile-role">{user.role} Member</p>
                   </div>
                 </div>
+
+                {/* Payment due notification */}
+                {user.membership?.status === 'active' && nextPaymentDue && (
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800 flex items-center gap-2" suppressHydrationWarning>
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      Your monthly payment is coming due on{' '}
+                      <strong>{nextPaymentDue}</strong>
+                    </p>
+                    <p className="text-xs text-amber-600 mt-1">
+                      Please ensure your payment is completed before this date.
+                    </p>
+                  </div>
+                )}
 
                 <div className="profile-details border-t pt-4 mt-4 space-y-2">
                   <div className="detail-row">

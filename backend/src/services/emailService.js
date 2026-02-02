@@ -62,7 +62,7 @@ export const sendVerificationEmail = async (email, name, token) => {
           </div>
           <div class="content">
             <h2>Hello ${name},</h2>
-            <p>Thank you for registering with Silte Ləmat Mehber community.</p>
+            <p>Thank you for registering with Silte Lmat Mehber community.</p>
             <p>Please verify your email address by clicking the button below:</p>
             <p style="text-align: center; margin: 30px 0;">
               <a href="${verificationUrl}" class="button">Verify Email Address</a>
@@ -372,14 +372,14 @@ export const sendWelcomeEmail = async (email, name, membershipId) => {
             </p>
             
             <div class="footer">
-              <p>Need help? Contact us at support@siltecommunity.org</p>
+              <p>Need help? Contact us at supportsiltecommunity@gmail.com</p>
               <p>Best regards,<br>The SLMA Team</p>
             </div>
           </div>
         </body>
         </html>
       `,
-      text: `Hello ${name},\n\nWelcome to Silte Lmat Mehber! Your account is now verified.\n\nYour Membership ID: ${membershipId}\n\nYou can now:\n- Connect with community members\n- Attend events\n- Access exclusive resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nNeed help? Contact support@siltecommunity.org\n\nBest regards,\nThe SLMA Team`
+      text: `Hello ${name},\n\nWelcome to Silte Lmat Mehber! Your account is now verified.\n\nYour Membership ID: ${membershipId}\n\nYou can now:\n- Connect with community members\n- Attend events\n- Access exclusive resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nNeed help? Contact supportsiltecommunity@gmail.com\n\nBest regards,\nThe SLMA Team`
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -471,7 +471,7 @@ export const sendUserVerificationEmail = async (email, name, membershipId) => {
             <div class="footer">
               <p>Welcome to the SLMA community!</p>
               <p style="color: #6b7280; font-size: 12px;">
-                This is an automated message from Silte Ləmat Mehber Association.
+                This is an automated message from Silte Lmat Mehber Association.
               </p>
             </div>
           </div>
@@ -582,7 +582,7 @@ export const sendAdminPaymentVerificationEmail = async (email, name, status, amo
             
             <div class="footer">
               <p><strong>Need help?</strong></p>
-              <p>📧 Email: membership@siltecommunity.org</p>
+              <p>📧 Email: membershipsiltecommunity@gmail.com</p>
               <p>📞 Phone: +251 93 067 0088</p>
               <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
                 ${isVerified ? 'Welcome to the SLMA community!' : 'We\'re here to help you complete your registration successfully.'}
@@ -656,7 +656,7 @@ export const sendPaymentRejectedEmail = async (email, name, membershipId, reason
             
             <p>Please contact our membership team immediately:</p>
             <ul>
-              <li>Email: membership@siltecommunity.org</li>
+              <li>Email: membershipsiltecommunity@gmail.com</li>
               <li>Phone: +251 93 067 0088</li>
               <li>Account: CBE 1000212203746 (Sofiya Yasin)</li>
             </ul>
@@ -680,6 +680,72 @@ export const sendPaymentRejectedEmail = async (email, name, membershipId, reason
     return info;
   } catch (error) {
     console.error(`❌ Error sending payment rejected email to ${email}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Send monthly payment reminder (membership renewal due)
+ */
+export const sendMonthlyPaymentReminder = async (email, name, dueDate, amount, membershipId) => {
+  try {
+    const dueStr = new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const mailOptions = {
+      from: `"SLMA Membership" <${process.env.SMTP_FROM}>`,
+      to: email,
+      subject: `⏰ Membership Payment Reminder - Due ${dueStr}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .reminder-box { background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+            .due-date { font-size: 1.2em; font-weight: bold; color: #b45309; }
+            .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>⏰ Membership Payment Reminder</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${name},</h2>
+            <div class="reminder-box">
+              <p><strong>Your membership payment is coming due!</strong></p>
+              <p class="due-date">Due date: ${dueStr}</p>
+              <p>Amount: ETB ${amount || 500}</p>
+              <p>Membership ID: ${membershipId || 'N/A'}</p>
+            </div>
+            <p>Please ensure your payment is completed before the due date to maintain uninterrupted access to SLMA benefits.</p>
+            <p><strong>Payment details:</strong></p>
+            <ul>
+              <li>CBE Account: 1000212203746</li>
+              <li>Account Name: Sofiya Yasin</li>
+              <li>Telebirr: +251930670088</li>
+            </ul>
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/membership" class="button">View Membership</a>
+            </p>
+            <div class="footer">
+              <p>This is a monthly payment reminder from Silte Lmat Mehber Association.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hello ${name},\n\nYour membership payment is coming due on ${dueStr}.\nAmount: ETB ${amount || 500}\nMembership ID: ${membershipId}\n\nPayment: CBE 1000212203746 (Sofiya Yasin), Telebirr +251930670088\n\nView: ${process.env.FRONTEND_URL}/membership\n\nBest regards,\nSLMA Team`
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Payment reminder sent to ${email}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Error sending payment reminder to ${email}:`, error);
     throw error;
   }
 };
@@ -755,7 +821,7 @@ export const sendDonationEmail = async ({ to, donorName, amount, transactionId, 
           
           <div class="footer">
             <p><strong>Need help?</strong> Contact our donation team:</p>
-            <p>📧 Email: donations@siltecommunity.org</p>
+            <p>📧 Email: donationssiltecommunity@gmail.com</p>
             <p>📞 Phone: +251 93 067 0088</p>
             <p style="font-size: 0.9em; margin-top: 20px; color: #6b7280;">
               Silte Language & Multicultural Association<br>
@@ -775,7 +841,7 @@ export const sendDonationEmail = async ({ to, donorName, amount, transactionId, 
       text: `
 Dear ${donorName},
 
-Thank you for your donation to Silte Ləmat Mehber!
+Thank you for your donation to Silte Lmat Mehber!
 
 DONATION DETAILS:
 Transaction ID: ${transactionId}
@@ -794,7 +860,7 @@ REFERENCE: Use "${donorName.substring(0, 20)}" or your phone number
 After payment, upload your receipt at:
 ${process.env.FRONTEND_URL}/donate/upload/${transactionId}
 
-Need help? Contact: donations@siltecommunity.org or call +251 93 067 0088
+Need help? Contact: donationssiltecommunity@gmail.com or call +251 93 067 0088
 
 Thank you for supporting our community!
 Silte Language & Multicultural Association
@@ -886,7 +952,7 @@ export const sendReceiptVerificationEmail = async ({ to, donorName, amount, stat
           
           <div class="footer">
             <p><strong>For any questions:</strong></p>
-            <p>📧 Email: donations@siltecommunity.org</p>
+            <p>📧 Email: donationssiltecommunity@gmail.com</p>
             <p>📞 Phone: +251 93 067 0088</p>
             <p>🕒 Hours: Mon-Fri, 9AM-5PM EAT</p>
             
@@ -1013,7 +1079,7 @@ export const sendDonationReceiptConfirmation = async ({ to, donorName, amount, t
           
           <div class="footer">
             <p><strong>Need to contact us?</strong></p>
-            <p>📧 Email: donations@siltecommunity.org</p>
+            <p>📧 Email: donationssiltecommunity@gmail.com</p>
             <p>📞 Phone: +251 93 067 0088</p>
             <p style="font-size: 0.9em; margin-top: 20px; color: #6b7280;">
               Thank you for your patience and support!<br>
@@ -1050,7 +1116,7 @@ NEXT STEPS:
 If you have any questions about your payment, please contact us immediately.
 
 Contact us:
-Email: donations@siltecommunity.org
+Email: donationssiltecommunity@gmail.com
 Phone: +251 93 067 0088
 
 Thank you for your patience and support!
@@ -1081,6 +1147,7 @@ export default {
   sendWelcomeEmail,
   testEmailService,
   sendPaymentRejectedEmail,
+  sendMonthlyPaymentReminder,
   
   // Admin verification functions
   sendUserVerificationEmail,

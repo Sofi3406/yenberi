@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
      "create-admin": "node script/create-super-admin.js",
+    "set-super-admin": "node script/set-super-admin.js",
     "seed": "node src/utils/seed.js"
   },
   "dependencies": {

@@ -8,6 +8,7 @@ import { sendUserVerificationEmail, sendAdminPaymentVerificationEmail } from '..
 
 const router = express.Router();
 
+
 // Protect all admin routes
 router.use(protect);
 router.use(authorize('super_admin', 'woreda_admin'));
@@ -216,27 +217,30 @@ router.put('/payments/:userId/verify', asyncHandler(async (req, res) => {
     }
 
     // Update payment status
+    user.payment = user.payment || {};
     user.payment.status = status;
     user.payment.verifiedBy = adminId;
     user.payment.verifiedAt = new Date();
     if (notes) {
       user.payment.notes = notes;
     }
+    user.markModified('payment');
 
     // If verified, activate membership
     if (status === 'verified') {
+      user.membership = user.membership || {};
       if (user.membership.status === 'pending_payment' || user.membership.status === 'pending_verification') {
         user.membership.status = 'active';
         user.membership.startDate = new Date();
-        // Set end date (e.g., 1 year from now)
         const endDate = new Date();
         endDate.setFullYear(endDate.getFullYear() + 1);
         user.membership.endDate = endDate;
       }
       user.emailVerified = true;
+      user.markModified('membership');
     }
 
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     // Send payment verification email to user
     try {

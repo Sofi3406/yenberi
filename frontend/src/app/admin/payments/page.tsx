@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { adminApi } from '@/services/adminApi';
 import { authService } from '@/services/authService';
+import api from '@/services/api';
 import { 
   CheckCircle, 
   XCircle, 
@@ -127,35 +127,22 @@ export default function AdminPaymentsPage() {
       return;
     }
 
-    // Get base URL and remove /api since static files are served from root
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    const BASE_URL = API_BASE.replace('/api', ''); // Remove /api to get base URL like http://localhost:5000
-    
-    // Use filename if available, otherwise extract from path
     let filename = payment.payment.receipt.filename;
-    
     if (!filename) {
-      // Extract filename from path (path is full path like /path/to/uploads/receipts/filename.jpg)
       const receiptPath = payment.payment.receipt.path || '';
-      
-      // If path contains 'receipts', extract everything after 'receipts/'
       if (receiptPath.includes('receipts')) {
         const parts = receiptPath.split('receipts');
-        filename = parts[parts.length - 1].replace(/^[\\/]/, ''); // Remove leading slash/backslash
+        filename = parts[parts.length - 1].replace(/^[\\/]/, '');
       } else {
-        // Otherwise, just get the filename (last part after slash/backslash)
         filename = receiptPath.split(/[\\/]/).pop() || receiptPath;
       }
     }
-    
     if (!filename) {
       toast.error('Receipt filename not found');
       return;
     }
-    
-    // Construct the receipt URL (static files are served from /uploads/receipts/)
-    const receiptUrl = `${BASE_URL}/uploads/receipts/${filename}`;
-    console.log('Opening receipt URL:', receiptUrl); // Debug log
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const receiptUrl = `${API_BASE.replace(/\/api\/?$/, '')}/api/receipts/${encodeURIComponent(filename)}`;
     window.open(receiptUrl, '_blank');
   };
 

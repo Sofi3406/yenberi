@@ -617,7 +617,7 @@ export const getMe = asyncHandler(async (req, res, next) => {
 // @access  Private
 export const updateProfile = asyncHandler(async (req, res, next) => {
   try {
-    const { name, phone, language, profile, woreda } = req.body;
+    const { name, fatherName, phone, language, profile, woreda, maritalStatus, userType, profession, currentResident } = req.body;
 
     const user = await User.findById(req.user.id).session(null);
 
@@ -628,17 +628,25 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
       });
     }
 
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (language) user.language = language;
-    if (profile) user.profile = { ...user.profile, ...profile };
-    if (woreda) user.woreda = woreda;
+    const validWoredas = ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'];
+    const toVal = (v) => (v === '' || v === null ? undefined : v);
+    if (name !== undefined && String(name).trim()) user.name = String(name).trim();
+    if (fatherName !== undefined) user.fatherName = String(fatherName || '').trim() || user.fatherName;
+    if (phone !== undefined && String(phone).trim()) user.phone = String(phone).trim();
+    if (language !== undefined) user.language = ['en', 'am', 'silt'].includes(language) ? language : user.language;
+    if (woreda !== undefined && validWoredas.includes(woreda)) user.woreda = woreda;
+    if (maritalStatus !== undefined && ['single', 'married'].includes(maritalStatus)) user.maritalStatus = maritalStatus;
+    if (userType !== undefined && ['student', 'employee'].includes(userType)) user.userType = userType;
+    if (profession !== undefined) user.profession = String(profession || '').trim() || user.profession;
+    if (currentResident !== undefined) user.currentResident = String(currentResident || '').trim() || user.currentResident;
+    if (profile && typeof profile === 'object') user.profile = { ...user.profile, ...profile };
 
     await user.save({ validateBeforeSave: false });
 
     const userResponse = {
       id: user._id,
       name: user.name,
+      fatherName: user.fatherName,
       email: user.email,
       phone: user.phone,
       woreda: user.woreda || 'worabe',
@@ -649,6 +657,10 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
       emailVerified: user.emailVerified,
       isActive: user.isActive,
       profile: user.profile,
+      maritalStatus: user.maritalStatus,
+      userType: user.userType,
+      profession: user.profession,
+      currentResident: user.currentResident,
     };
 
     // Create activity for profile update

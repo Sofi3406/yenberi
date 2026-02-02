@@ -68,6 +68,7 @@ const userSchema = new mongoose.Schema(
       membershipId: String,
       startDate: Date,
       endDate: Date,
+      lastPaymentReminderSent: Date,
     },
     // NEW: Payment fields
     payment: {

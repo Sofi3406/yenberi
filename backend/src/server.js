@@ -16,8 +16,9 @@ import galleryRoutes from './routes/galleries.js';
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
 
-// Import email service
-import { testEmailService } from './services/emailService.js';
+// Import email service and payment reminder
+import { testEmailService, sendMonthlyPaymentReminder } from './services/emailService.js';
+import User from './models/User.js';
 
 // Load env vars
 dotenv.config();
@@ -210,17 +211,31 @@ app.get('/', (req, res) => {
 });
 
 // ============================================
+// ✅ RECEIPT FILE SERVING (for admin view)
+// ============================================
+app.get('/api/receipts/:filename', (req, res) => {
+  const filename = req.params.filename;
+  if (!filename || /[^a-zA-Z0-9._-]/.test(filename)) {
+    return res.status(400).json({ success: false, message: 'Invalid filename' });
+  }
+  const filePath = path.join(__dirname, '../uploads/receipts', filename);
+  res.sendFile(filePath, (err) => {
+    if (err) res.status(404).json({ success: false, message: 'Receipt not found' });
+  });
+});
+
+// ============================================
 // ✅ API ROUTES
 // ============================================
 
 app.use('/api/auth', authRoutes);
 app.use('/api/donations', donationRoutes);
-app.use('/api/events', eventRoutes); // ✅ Event routes (includes admin routes at /api/events/admin/*)
-app.use('/api/galleries', galleryRoutes); // Gallery routes
+app.use('/api/events', eventRoutes); 
+app.use('/api/galleries', galleryRoutes); 
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/users', adminUsersRoutes);
-app.use('/api/admin', adminRoutes); // ✅ Admin routes (dashboard stats, payments, etc.)
+app.use('/api/admin', adminRoutes); 
 
 // ============================================
 // ✅ 404 HANDLER
@@ -310,6 +325,52 @@ const server = app.listen(PORT, async () => {
   } catch (error) {
     console.warn('⚠️  Could not check upload directories:', error.message);
   }
+
+  // Monthly payment reminder job - run daily
+  const runPaymentReminderJob = async () => {
+    try {
+      const now = new Date();
+      const in30Days = new Date(now);
+      in30Days.setDate(in30Days.getDate() + 30);
+      const minLastSent = new Date(now);
+      minLastSent.setDate(minLastSent.getDate() - 28);
+
+      const users = await User.find({
+        'membership.status': 'active',
+        'membership.endDate': { $gte: now, $lte: in30Days },
+        isActive: true,
+        $or: [
+          { 'membership.lastPaymentReminderSent': { $exists: false } },
+          { 'membership.lastPaymentReminderSent': null },
+          { 'membership.lastPaymentReminderSent': { $lt: minLastSent } }
+        ]
+      }).select('name email membership payment');
+
+      for (const user of users) {
+        try {
+          await sendMonthlyPaymentReminder(
+            user.email,
+            user.name,
+            user.membership?.endDate,
+            user.payment?.amount || 500,
+            user.membership?.membershipId
+          );
+          user.membership.lastPaymentReminderSent = new Date();
+          await user.save({ validateBeforeSave: false });
+        } catch (e) {
+          console.warn(`⚠️ Payment reminder failed for ${user.email}:`, e.message);
+        }
+      }
+      if (users.length > 0) {
+        console.log(`📧 Sent ${users.length} payment reminder(s)`);
+      }
+    } catch (err) {
+      console.warn('⚠️ Payment reminder job error:', err.message);
+    }
+  };
+
+  runPaymentReminderJob();
+  setInterval(runPaymentReminderJob, 24 * 60 * 60 * 1000);
 });
 
 // Handle unhandled promise rejections

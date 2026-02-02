@@ -14,7 +14,9 @@ import {
   TrendingUp,
   AlertCircle,
   UserCheck,
-  XCircle
+  XCircle,
+  Settings,
+  Bell
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -129,6 +131,13 @@ export default function AdminDashboardPage() {
       color: 'bg-orange-500',
       count: stats?.pendingVerifications || 0,
       badge: stats?.pendingVerifications > 0 ? 'pending' : null
+    },
+    {
+      title: 'Notifications',
+      description: 'Payment reminders and events',
+      icon: <Bell className="w-8 h-8" />,
+      href: '/notifications',
+      color: 'bg-teal-500'
     }
   ];
 
@@ -190,6 +199,13 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <Link
+                href="/profile/edit"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                <Settings className="w-4 h-4" />
+                Edit Profile
+              </Link>
               <Shield className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium text-gray-700">Admin Access</span>
             </div>

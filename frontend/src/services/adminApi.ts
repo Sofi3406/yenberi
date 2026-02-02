@@ -26,6 +26,11 @@ export const adminApi = {
     return res.data;
   },
 
+  getUser: async (id: string) => {
+    const res = await api.get(`/admin/users/${id}`);
+    return res.data;
+  },
+
   verifyUser: async (id: string) => {
     const res = await api.put(`/admin/users/${id}/verify`);
     return res.data;

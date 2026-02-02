@@ -131,7 +131,7 @@ export const authService = {
   },
 
   // Update profile
-  updateProfile: async (data: Partial<RegisterData>) => {
+  updateProfile: async (data: Partial<RegisterData> & { profile?: { bio?: string; occupation?: string; location?: string }; phone?: string; woreda?: string }) => {
     const response = await api.put('/auth/update-profile', data);
     if (response.data.user) {
       safeLocalStorage.setItem('slma_user', JSON.stringify(response.data.user));

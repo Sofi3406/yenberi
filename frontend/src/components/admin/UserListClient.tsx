@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/services/adminApi';
-import { UserCheck, XCircle, Trash2, Shield, Mail } from 'lucide-react';
+import Link from 'next/link';
+import { UserCheck, XCircle, Trash2, Shield, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function UserListClient() {
@@ -175,6 +176,13 @@ export default function UserListClient() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/users/${u._id}`}
+                        className="text-blue-600 hover:text-blue-900 p-1"
+                        title="View Profile & Verify"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </Link>
                       {!u.emailVerified && (
                         <button 
                           onClick={() => verifyUser(u._id)} 
