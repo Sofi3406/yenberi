@@ -42,8 +42,12 @@ const Header = () => {
       <div className="header-container">
         {/* Logo */}
         <Link href="/" className="header-logo-link">
-          <div className="header-logo">
-            <span>SL</span>
+          <div className="header-logo has-image">
+            <img
+              src="/images/slma.jpg"
+              alt="SLMA Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="header-logo-text">
             <h1 className="site-title">Silte Lmat Mehber</h1>

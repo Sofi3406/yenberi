@@ -54,8 +54,12 @@ const Footer = () => {
           {/* Logo & Description */}
           <div className="footer-logo-section">
             <Link href="/" className="footer-logo-link">
-              <div className="footer-logo">
-                <span className="footer-logo-text">SL</span>
+              <div className="footer-logo has-image">
+                <img
+                  src="/images/slma.jpg"
+                  alt="SLMA Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <h2 className="footer-organization-name">Silte Lmat Mehber</h2>
