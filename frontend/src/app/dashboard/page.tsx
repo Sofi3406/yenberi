@@ -287,7 +287,7 @@ export default function DashboardPage() {
     { 
       label: 'My Events', 
       icon: <Calendar className="w-5 h-5" />, 
-      action: () => router.push('/events/my'),
+      action: () => router.push('/events'),
       color: 'bg-green-500'
     },
     { 

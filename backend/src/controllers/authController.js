@@ -383,8 +383,10 @@ export const login = asyncHandler(async (req, res, next) => {
       currentResident: user.currentResident,
       profession: user.profession,
       profile: user.profile,
+      nationalId: user.nationalId,
       payment: {
         status: user.payment?.status || 'none',
+        receipt: user.payment?.receipt,
       }
     };
 
@@ -600,8 +602,10 @@ export const getMe = asyncHandler(async (req, res, next) => {
         userType: user.userType,
         currentResident: user.currentResident,
         profession: user.profession,
+        nationalId: user.nationalId,
         payment: {
           status: user.payment?.status || 'none',
+          receipt: user.payment?.receipt,
         }
       },
     });
