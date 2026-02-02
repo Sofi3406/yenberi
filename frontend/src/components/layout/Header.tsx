@@ -22,7 +22,8 @@ const Header = () => {
         { href: '/gallery', label: t('nav.gallery') },
         { href: '/projects', label: t('nav.projects') },
         { href: '/donate', label: t('nav.donate') },
-        { href: '/co-founders', label: t('nav.co-founders') }
+        { href: '/contact', label: 'Contact Us' },
+        { href: '/co-founders', label: t('co-founders') }
       ]
     : [];
 

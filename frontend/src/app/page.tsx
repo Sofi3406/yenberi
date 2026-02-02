@@ -80,7 +80,16 @@ export default function HomePage() {
   return (
     <div className="home-page">
       {/* Hero Section */}
-      <section className="hero-section">
+      <section
+        className="hero-section"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/images/worabeMusseum.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="container">
           <div className="hero-content">
             <h1 className="hero-title">{t('hero.title')}</h1>
@@ -98,7 +107,16 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="stats-section">
+      <section
+        className="stats-section"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), url('/images/tedbabelot.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="container">
           <div className="stats-grid">
             {stats.map((stat, index) => (
@@ -199,20 +217,38 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section">
+      <section
+        className="cta-section"
+        style={{
+          backgroundImage:
+            "url('/images/hayrenzi.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="container text-center">
-          <h2 className="cta-title">Ready to Make a Difference?</h2>
-          <p className="cta-description">
-            Join thousands of Silte community members who are preserving our heritage
-            and building our future together.
-          </p>
-          <div className="cta-buttons">
-            <Link href="/auth/register" className="btn btn-white">
-              Become a Member
-            </Link>
-            <Link href="/donate" className="btn btn-outline-white">
-              Support Our Projects
-            </Link>
+          <div
+            style={{
+              display: 'inline-block',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              padding: '2.5rem 2rem',
+              borderRadius: '1.25rem'
+            }}
+          >
+            <h2 className="cta-title" style={{ color: '#111827' }}>Ready to Make a Difference?</h2>
+            <p className="cta-description" style={{ color: '#1f2937' }}>
+              Join thousands of Silte community members who are preserving our heritage
+              and building our future together.
+            </p>
+            <div className="cta-buttons">
+              <Link href="/auth/register" className="btn btn-white">
+                Become a Member
+              </Link>
+              <Link href="/donate" className="btn btn-outline-white">
+                Support Our Projects
+              </Link>
+            </div>
           </div>
         </div>
       </section>
