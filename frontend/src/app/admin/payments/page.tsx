@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { authService } from '@/services/authService';
-import api from '@/services/api';
+import { adminApi } from '@/services/adminApi';
 import { 
   CheckCircle, 
   XCircle, 
@@ -63,22 +62,7 @@ export default function AdminPaymentsPage() {
     try {
       setLoading(true);
       const status = filterStatus === 'all' ? undefined : filterStatus;
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const token = authService.getToken();
-      
-      const url = status 
-        ? `${API_BASE}/admin/payments?status=${status}`
-        : `${API_BASE}/admin/payments`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch payments');
-      
-      const data = await response.json();
+      const data = await adminApi.getPayments(status);
       setPayments(data.data || []);
     } catch (error) {
       console.error('Error fetching payments:', error);
@@ -90,25 +74,8 @@ export default function AdminPaymentsPage() {
 
   const handleVerify = async (userId: string, status: 'verified' | 'rejected') => {
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const token = authService.getToken();
-      
-      const response = await fetch(`${API_BASE}/admin/payments/${userId}/verify`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          status,
-          notes: verificationNotes
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to verify payment');
-      }
+      console.log('Admin verify payment:', { userId, status });
+      await adminApi.verifyPayment(userId, status, verificationNotes);
 
       toast.success(`Payment ${status} successfully`);
       setShowModal(false);

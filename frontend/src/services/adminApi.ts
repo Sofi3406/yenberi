@@ -49,7 +49,12 @@ export const adminApi = {
   },
 
   getDashboardStats: async () => {
-    const res = await api.get('/admin/dashboard/stats');
+    const res = await api.get('/admin/dashboard/stats', {
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache'
+      }
+    });
     return res.data;
   }
 };

@@ -18,6 +18,7 @@ router.use(authorize('super_admin', 'woreda_admin'));
 // @access  Private (Admin only)
 router.get('/dashboard/stats', asyncHandler(async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const adminRole = req.user.role;
     const adminWoreda = req.user.woreda;
 
@@ -193,6 +194,8 @@ router.put('/payments/:userId/verify', asyncHandler(async (req, res) => {
     const { status, notes } = req.body;
     const adminId = req.user.id;
 
+    console.log('🧾 Admin payment verify request:', { userId, status, adminId });
+
     if (!status || !['verified', 'rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -216,8 +219,11 @@ router.put('/payments/:userId/verify', asyncHandler(async (req, res) => {
       });
     }
 
-    // Update payment status
+    // Ensure subdocuments exist
     user.payment = user.payment || {};
+    user.membership = user.membership || {};
+
+    // Update payment status
     user.payment.status = status;
     user.payment.verifiedBy = adminId;
     user.payment.verifiedAt = new Date();
@@ -228,34 +234,35 @@ router.put('/payments/:userId/verify', asyncHandler(async (req, res) => {
 
     // If verified, activate membership
     if (status === 'verified') {
-      user.membership = user.membership || {};
-      if (user.membership.status === 'pending_payment' || user.membership.status === 'pending_verification') {
-        user.membership.status = 'active';
-        user.membership.startDate = new Date();
-        const endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 1);
-        user.membership.endDate = endDate;
-      }
+      user.membership.status = 'active';
+      user.membership.startDate = new Date();
+      const endDate = new Date();
+      endDate.setFullYear(endDate.getFullYear() + 1);
+      user.membership.endDate = endDate;
       user.emailVerified = true;
       user.markModified('membership');
     }
 
     await user.save({ validateBeforeSave: false });
 
-    // Send payment verification email to user
-    try {
-      await sendAdminPaymentVerificationEmail(
-        user.email,
-        user.name,
-        status,
-        user.payment.amount,
-        user.membership?.membershipId || `SLMA-${user._id.toString().slice(-6)}`,
-        notes
-      );
-      console.log(`✅ Payment verification email sent to ${user.email}`);
-    } catch (emailError) {
-      console.warn('⚠️ Failed to send payment verification email:', emailError.message);
-    }
+    // Send payment verification email to user (non-blocking)
+    Promise.resolve()
+      .then(() =>
+        sendAdminPaymentVerificationEmail(
+          user.email,
+          user.name,
+          status,
+          user.payment.amount,
+          user.membership?.membershipId || `SLMA-${user._id.toString().slice(-6)}`,
+          notes
+        )
+      )
+      .then(() => {
+        console.log(`✅ Payment verification email sent to ${user.email}`);
+      })
+      .catch((emailError) => {
+        console.warn('⚠️ Failed to send payment verification email:', emailError.message);
+      });
 
     res.json({
       success: true,
@@ -263,7 +270,7 @@ router.put('/payments/:userId/verify', asyncHandler(async (req, res) => {
       data: {
         userId: user._id,
         paymentStatus: user.payment.status,
-        membershipStatus: user.membership.status,
+        membershipStatus: user.membership?.status,
         verifiedAt: user.payment.verifiedAt
       }
     });
