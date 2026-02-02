@@ -37,11 +37,15 @@ export default function EditProfilePage() {
     woreda: '',
     language: 'en' as 'en' | 'am' | 'silt',
     maritalStatus: '' as '' | 'single' | 'married',
+    gender: '' as '' | 'male' | 'female',
+    age: '' as '' | string,
     userType: '' as '' | 'student' | 'employee',
     profession: '',
     currentResident: '',
     profile: { bio: '', occupation: '', location: '' } as { bio?: string; occupation?: string; location?: string },
   });
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -62,6 +66,8 @@ export default function EditProfilePage() {
           woreda: u.woreda || '',
           language: u.language || 'en',
           maritalStatus: u.maritalStatus || '',
+          gender: u.gender || '',
+          age: u.age ? String(u.age) : '',
           userType: u.userType || '',
           profession: u.profession || '',
           currentResident: u.currentResident || '',
@@ -71,6 +77,10 @@ export default function EditProfilePage() {
             location: u.profile?.location || '',
           },
         });
+        if (u.profile?.photo) {
+          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+          setProfileImagePreview(`${baseUrl}/uploads/${u.profile.photo}`);
+        }
       } catch (err: any) {
         toast.error(err.response?.data?.message || err.message || 'Failed to load profile');
         router.push(authService.isAdmin() ? '/admin/dashboard' : '/dashboard');
@@ -94,23 +104,45 @@ export default function EditProfilePage() {
     }
   };
 
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a valid image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+    setProfileImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = {
-        name: formData.name,
-        fatherName: formData.fatherName || undefined,
-        phone: formData.phone,
-        woreda: formData.woreda || undefined,
-        language: formData.language,
-        maritalStatus: formData.maritalStatus || undefined,
-        userType: formData.userType || undefined,
-        profession: formData.profession || undefined,
-        currentResident: formData.currentResident || undefined,
-        profile: formData.profile,
-      };
-      await authService.updateProfile(payload);
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('fatherName', formData.fatherName || '');
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('woreda', formData.woreda || '');
+      formDataToSend.append('language', formData.language);
+      formDataToSend.append('maritalStatus', formData.maritalStatus || '');
+      formDataToSend.append('gender', formData.gender || '');
+      formDataToSend.append('age', formData.age || '');
+      formDataToSend.append('userType', formData.userType || '');
+      formDataToSend.append('profession', formData.profession || '');
+      formDataToSend.append('currentResident', formData.currentResident || '');
+      formDataToSend.append('profile', JSON.stringify(formData.profile));
+      if (profileImageFile) {
+        formDataToSend.append('profileImage', profileImageFile);
+      }
+
+      await authService.updateProfile(formDataToSend);
       toast.success('Profile updated successfully');
       router.push(authService.isAdmin() ? '/admin/dashboard' : '/dashboard');
     } catch (err: any) {
@@ -144,6 +176,32 @@ export default function EditProfilePage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+            <div className="flex items-center gap-4">
+              {profileImagePreview ? (
+                <img
+                  src={profileImagePreview}
+                  alt="Profile preview"
+                  className="h-20 w-20 rounded-full object-cover border"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-full bg-gray-100 border flex items-center justify-center text-gray-400">
+                  N/A
+                </div>
+              )}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfileImageChange}
+                  className="block text-sm text-gray-700"
+                />
+                <p className="text-xs text-gray-500 mt-1">JPG/PNG, max 5MB</p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
             <input
@@ -206,6 +264,34 @@ export default function EditProfilePage() {
               <option value="single">Single</option>
               <option value="married">Married</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+            <input
+              type="number"
+              name="age"
+              value={formData.age}
+              onChange={handleChange}
+              min={18}
+              max={120}
+              placeholder="Enter your age"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
           </div>
 
           <div>

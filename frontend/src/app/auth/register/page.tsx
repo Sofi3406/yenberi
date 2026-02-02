@@ -38,6 +38,11 @@ const userTypeOptions = [
   { id: 'student', name: 'Student' },
   { id: 'employee', name: 'Employee' },
 ];
+const genderOptions = [
+  { id: '', name: 'Select gender' },
+  { id: 'male', name: 'Male' },
+  { id: 'female', name: 'Female' },
+];
 // Professions
 const professions = [
   { id: '', name: 'Select profession' },
@@ -77,6 +82,8 @@ const RegistrationForm = () => {
     membershipPlan: 'active',
     language: language,
     maritalStatus: '',
+    gender: '',
+    age: '',
     userType: '',
     currentResident: '',
     profession: '',
@@ -245,6 +252,18 @@ const RegistrationForm = () => {
     if (!formData.maritalStatus) {
       newErrors.maritalStatus = 'Please select marital status (Single or Married)';
     }
+
+    if (!formData.gender) {
+      newErrors.gender = 'Please select gender';
+    }
+
+    if (!formData.age) {
+      newErrors.age = 'Age is required';
+    } else if (!/^[0-9]+$/.test(String(formData.age))) {
+      newErrors.age = 'Age must be a number';
+    } else if (Number(formData.age) < 18 || Number(formData.age) > 120) {
+      newErrors.age = 'Age must be between 18 and 120';
+    }
     
     if (!formData.userType) {
       newErrors.userType = 'Please select Student or Employee';
@@ -294,6 +313,8 @@ const RegistrationForm = () => {
         ...rest,
         fatherName: formData.fatherName,
         maritalStatus: formData.maritalStatus,
+        gender: formData.gender,
+        age: Number(formData.age),
         userType: formData.userType,
         currentResident: formData.currentResident || undefined,
         profession: formData.profession,
@@ -384,6 +405,8 @@ const RegistrationForm = () => {
         membershipPlan: 'active',
         language: language,
         maritalStatus: '',
+        gender: '',
+        age: '',
         userType: '',
         currentResident: '',
         profession: '',
@@ -738,6 +761,50 @@ const RegistrationForm = () => {
               </select>
               {errors.maritalStatus && (
                 <span className="error-message" role="alert">{errors.maritalStatus}</span>
+              )}
+            </div>
+
+            {/* Gender */}
+            <div className="form-group">
+              <label htmlFor="gender" className="form-label">
+                Gender *
+              </label>
+              <select
+                id="gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className={`input-field select-field ${errors.gender ? 'input-error' : ''}`}
+                disabled={isLoading}
+              >
+                {genderOptions.map((o) => (
+                  <option key={o.id} value={o.id} disabled={!o.id}>{o.name}</option>
+                ))}
+              </select>
+              {errors.gender && (
+                <span className="error-message" role="alert">{errors.gender}</span>
+              )}
+            </div>
+
+            {/* Age */}
+            <div className="form-group">
+              <label htmlFor="age" className="form-label">
+                Age *
+              </label>
+              <input
+                type="number"
+                id="age"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                className={`input-field ${errors.age ? 'input-error' : ''}`}
+                placeholder="Enter your age"
+                min={18}
+                max={120}
+                disabled={isLoading}
+              />
+              {errors.age && (
+                <span className="error-message" role="alert">{errors.age}</span>
               )}
             </div>
 

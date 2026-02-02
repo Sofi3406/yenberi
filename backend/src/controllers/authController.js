@@ -55,6 +55,29 @@ const uploadRegistration = multer({
   { name: 'receipt', maxCount: 1 }
 ]);
 
+// Configure multer for profile image update
+const profileUpdateStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const basePath = path.join(__dirname, '../../uploads');
+    const subdir = 'profile-photos';
+    const uploadPath = path.join(basePath, subdir);
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadProfileImage = multer({
+  storage: profileUpdateStorage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+}).single('profileImage');
+
 // Helper to clean up uploaded files
 function cleanupUploadedFiles(req) {
   const files = req.files ? (Array.isArray(req.files) ? req.files : Object.values(req.files).flat()) : [];
@@ -88,7 +111,7 @@ export const register = asyncHandler(async (req, res, next) => {
 
         const {
           name, fatherName, email, password, phone, woreda, membershipPlan, language,
-          maritalStatus, userType, currentResident, profession
+          maritalStatus, gender, age, userType, currentResident, profession
         } = userData;
 
         const nationalIdFile = req.files?.nationalId?.[0];
@@ -105,6 +128,8 @@ export const register = asyncHandler(async (req, res, next) => {
         if (!woreda) missing.push('woreda');
         if (!membershipPlan) missing.push('membershipPlan');
         if (!maritalStatus) missing.push('maritalStatus');
+        if (!gender) missing.push('gender');
+        if (!age) missing.push('age');
         if (!userType) missing.push('userType');
         if (!profession) missing.push('profession');
         if (!nationalIdFile) missing.push('nationalId (upload required)');
@@ -124,6 +149,8 @@ export const register = asyncHandler(async (req, res, next) => {
               woreda: !woreda ? 'Woreda is required' : undefined,
               membershipPlan: !membershipPlan ? 'Membership plan is required' : undefined,
               maritalStatus: !maritalStatus ? 'Marital status is required' : undefined,
+              gender: !gender ? 'Gender is required' : undefined,
+              age: !age ? 'Age is required' : undefined,
               userType: !userType ? 'Student or Employee is required' : undefined,
               profession: !profession ? 'Profession is required' : undefined,
               nationalId: !nationalIdFile ? 'National ID document is required' : undefined,
@@ -161,6 +188,18 @@ export const register = asyncHandler(async (req, res, next) => {
           return res.status(400).json({ success: false, message: 'Invalid marital status', errors: { maritalStatus: 'Select single or married' } });
         }
 
+        const validGender = ['male', 'female'];
+        if (!validGender.includes(gender)) {
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid gender', errors: { gender: 'Select male or female' } });
+        }
+
+        const ageNumber = Number(age);
+        if (!Number.isFinite(ageNumber) || ageNumber < 18 || ageNumber > 120) {
+          cleanupUploadedFiles(req);
+          return res.status(400).json({ success: false, message: 'Invalid age', errors: { age: 'Age must be between 18 and 120' } });
+        }
+
         const validUserType = ['student', 'employee'];
         if (!validUserType.includes(userType)) {
           cleanupUploadedFiles(req);
@@ -191,6 +230,8 @@ export const register = asyncHandler(async (req, res, next) => {
           membershipPlan,
           language: language || 'en',
           maritalStatus,
+          gender,
+          age: ageNumber,
           userType,
           currentResident: currentResident || undefined,
           profession,
@@ -379,6 +420,8 @@ export const login = asyncHandler(async (req, res, next) => {
       emailVerified: user.emailVerified,
       isActive: user.isActive,
       maritalStatus: user.maritalStatus,
+      gender: user.gender,
+      age: user.age,
       userType: user.userType,
       currentResident: user.currentResident,
       profession: user.profession,
@@ -599,6 +642,8 @@ export const getMe = asyncHandler(async (req, res, next) => {
         isActive: user.isActive,
         profile: user.profile,
         maritalStatus: user.maritalStatus,
+        gender: user.gender,
+        age: user.age,
         userType: user.userType,
         currentResident: user.currentResident,
         profession: user.profession,
@@ -621,81 +666,160 @@ export const getMe = asyncHandler(async (req, res, next) => {
 // @access  Private
 export const updateProfile = asyncHandler(async (req, res, next) => {
   try {
-    const { name, fatherName, phone, language, profile, woreda, maritalStatus, userType, profession, currentResident } = req.body;
+    uploadProfileImage(req, res, async function(err) {
+      if (err instanceof multer.MulterError) {
+        cleanupUploadedFiles(req);
+        return res.status(400).json({ success: false, message: 'File upload error', error: err.message });
+      }
+      if (err) {
+        cleanupUploadedFiles(req);
+        return res.status(400).json({ success: false, message: err.message });
+      }
 
-    const user = await User.findById(req.user.id).session(null);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
-    const validWoredas = ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'];
-    const toVal = (v) => (v === '' || v === null ? undefined : v);
-    if (name !== undefined && String(name).trim()) user.name = String(name).trim();
-    if (fatherName !== undefined) user.fatherName = String(fatherName || '').trim() || user.fatherName;
-    if (phone !== undefined && String(phone).trim()) user.phone = String(phone).trim();
-    if (language !== undefined) user.language = ['en', 'am', 'silt'].includes(language) ? language : user.language;
-    if (woreda !== undefined && validWoredas.includes(woreda)) user.woreda = woreda;
-    if (maritalStatus !== undefined && ['single', 'married'].includes(maritalStatus)) user.maritalStatus = maritalStatus;
-    if (userType !== undefined && ['student', 'employee'].includes(userType)) user.userType = userType;
-    if (profession !== undefined) user.profession = String(profession || '').trim() || user.profession;
-    if (currentResident !== undefined) user.currentResident = String(currentResident || '').trim() || user.currentResident;
-    if (profile && typeof profile === 'object') user.profile = { ...user.profile, ...profile };
-
-    await user.save({ validateBeforeSave: false });
-
-    const userResponse = {
-      id: user._id,
-      name: user.name,
-      fatherName: user.fatherName,
-      email: user.email,
-      phone: user.phone,
-      woreda: user.woreda || 'worabe',
-      membershipPlan: user.membershipPlan,
-      membership: user.membership,
-      role: user.role,
-      language: user.language,
-      emailVerified: user.emailVerified,
-      isActive: user.isActive,
-      profile: user.profile,
-      maritalStatus: user.maritalStatus,
-      userType: user.userType,
-      profession: user.profession,
-      currentResident: user.currentResident,
-    };
-
-    // Create activity for profile update
-    try {
-      await Activity.create({
-        user: user._id,
-        type: 'profile_update',
-        description: 'User updated profile information',
-        metadata: {
-          updatedFields: Object.keys(req.body)
+      try {
+        const { name, fatherName, phone, language, woreda, maritalStatus, gender, age, userType, profession, currentResident } = req.body;
+        let profile = req.body.profile;
+        if (typeof profile === 'string') {
+          try {
+            profile = JSON.parse(profile);
+          } catch (parseError) {
+            cleanupUploadedFiles(req);
+            return res.status(400).json({ success: false, message: 'Invalid profile data format' });
+          }
         }
-      });
-    } catch (actErr) {
-      console.warn('Failed to create profile update activity:', actErr.message);
-    }
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      user: userResponse,
-    });
 
+        const user = await User.findById(req.user.id).session(null);
+
+        if (!user) {
+          cleanupUploadedFiles(req);
+          return res.status(404).json({
+            success: false,
+            message: 'User not found',
+          });
+        }
+
+        const validWoredas = ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'];
+        const toVal = (v) => (v === '' || v === null ? undefined : v);
+
+        if (name !== undefined && String(name).trim()) user.name = String(name).trim();
+        if (fatherName !== undefined) {
+          const val = toVal(fatherName);
+          user.fatherName = val !== undefined ? String(val).trim() : undefined;
+        }
+        if (phone !== undefined && String(phone).trim()) user.phone = String(phone).trim();
+        if (language !== undefined) user.language = ['en', 'am', 'silt'].includes(language) ? language : user.language;
+        if (woreda !== undefined) {
+          const val = toVal(woreda);
+          if (val !== undefined && validWoredas.includes(val)) user.woreda = val;
+        }
+        if (maritalStatus !== undefined) {
+          const val = toVal(maritalStatus);
+          if (val === undefined) user.maritalStatus = undefined;
+          else if (['single', 'married'].includes(val)) user.maritalStatus = val;
+          else {
+            cleanupUploadedFiles(req);
+            return res.status(400).json({ success: false, message: 'Invalid marital status' });
+          }
+        }
+        if (gender !== undefined) {
+          const val = toVal(gender);
+          if (val === undefined) user.gender = undefined;
+          else if (['male', 'female'].includes(val)) user.gender = val;
+          else {
+            cleanupUploadedFiles(req);
+            return res.status(400).json({ success: false, message: 'Invalid gender' });
+          }
+        }
+        if (age !== undefined) {
+          const val = toVal(age);
+          if (val === undefined) {
+            user.age = undefined;
+          } else {
+            const ageNumber = Number(val);
+            if (!Number.isFinite(ageNumber) || ageNumber < 18 || ageNumber > 120) {
+              cleanupUploadedFiles(req);
+              return res.status(400).json({ success: false, message: 'Invalid age' });
+            }
+            user.age = ageNumber;
+          }
+        }
+        if (userType !== undefined) {
+          const val = toVal(userType);
+          if (val === undefined) user.userType = undefined;
+          else if (['student', 'employee'].includes(val)) user.userType = val;
+          else {
+            cleanupUploadedFiles(req);
+            return res.status(400).json({ success: false, message: 'Invalid user type' });
+          }
+        }
+        if (profession !== undefined) user.profession = String(profession || '').trim() || user.profession;
+        if (currentResident !== undefined) user.currentResident = String(currentResident || '').trim() || user.currentResident;
+        if (profile && typeof profile === 'object') user.profile = { ...user.profile, ...profile };
+
+        if (req.file) {
+          user.profile = { ...user.profile, photo: `profile-photos/${req.file.filename}` };
+        }
+
+        await user.save({ validateBeforeSave: false });
+
+        const userResponse = {
+          id: user._id,
+          name: user.name,
+          fatherName: user.fatherName,
+          email: user.email,
+          phone: user.phone,
+          woreda: user.woreda || 'worabe',
+          membershipPlan: user.membershipPlan,
+          membership: user.membership,
+          role: user.role,
+          language: user.language,
+          emailVerified: user.emailVerified,
+          isActive: user.isActive,
+          profile: user.profile,
+          maritalStatus: user.maritalStatus,
+          gender: user.gender,
+          age: user.age,
+          userType: user.userType,
+          profession: user.profession,
+          currentResident: user.currentResident,
+        };
+
+        // Create activity for profile update
+        try {
+          const updatedFields = Object.keys(req.body || {});
+          if (req.file) updatedFields.push('profileImage');
+          await Activity.create({
+            user: user._id,
+            type: 'profile_update',
+            description: 'User updated profile information',
+            metadata: {
+              updatedFields
+            }
+          });
+        } catch (actErr) {
+          console.warn('Failed to create profile update activity:', actErr.message);
+        }
+        res.json({
+          success: true,
+          message: 'Profile updated successfully',
+          user: userResponse,
+        });
+
+      } catch (error) {
+        console.error('🔥 Update profile controller error:', error);
+
+        if (error.code === 11000) {
+          return res.status(409).json({
+            success: false,
+            message: 'Duplicate field value',
+          });
+        }
+
+        next(error);
+      }
+    });
   } catch (error) {
     console.error('🔥 Update profile controller error:', error);
-    
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: 'Duplicate field value',
-      });
-    }
-    
     next(error);
   }
 });

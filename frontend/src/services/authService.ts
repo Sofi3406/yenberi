@@ -17,6 +17,8 @@ export interface RegisterData {
   zone?: string;
   language?: 'en' | 'am' | 'silt';
   maritalStatus: MaritalStatus;
+  gender: 'male' | 'female';
+  age: number;
   userType: UserType;
   currentResident?: string;
   profession: Profession;
@@ -44,6 +46,8 @@ export interface User {
   language: 'en' | 'am' | 'silt';
   emailVerified: boolean;
   maritalStatus?: MaritalStatus;
+  gender?: 'male' | 'female';
+  age?: number;
   userType?: UserType;
   currentResident?: string;
   profession?: Profession;
@@ -131,8 +135,10 @@ export const authService = {
   },
 
   // Update profile
-  updateProfile: async (data: Partial<RegisterData> & { profile?: { bio?: string; occupation?: string; location?: string }; phone?: string; woreda?: string }) => {
-    const response = await api.put('/auth/update-profile', data);
+  updateProfile: async (data: Partial<RegisterData> & { profile?: { bio?: string; occupation?: string; location?: string }; phone?: string; woreda?: string } | FormData) => {
+    const response = await api.put('/auth/update-profile', data, data instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    } : undefined);
     if (response.data.user) {
       safeLocalStorage.setItem('slma_user', JSON.stringify(response.data.user));
     }

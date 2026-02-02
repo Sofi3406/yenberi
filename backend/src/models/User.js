@@ -123,6 +123,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['single', 'married'],
     },
+    gender: {
+      type: String,
+      enum: ['male', 'female'],
+    },
+    age: {
+      type: Number,
+      min: 1,
+      max: 120,
+    },
     userType: {
       type: String,
       enum: ['student', 'employee'],
