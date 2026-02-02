@@ -1,19 +1,28 @@
 import nodemailer from 'nodemailer';
 
+const emailHost = process.env.SMTP_HOST || process.env.EMAIL_HOST;
+const emailPort = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
+const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+const emailFrom = process.env.SMTP_FROM || process.env.EMAIL_FROM || emailUser;
+const emailService = process.env.SMTP_SERVICE || process.env.EMAIL_SERVICE;
+const parseBool = (value) =>
+  typeof value === 'string' ? value.toLowerCase() === 'true' : undefined;
+const emailSecure = parseBool(process.env.SMTP_SECURE || process.env.EMAIL_SECURE);
+
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false,
+  ...(emailService ? { service: emailService } : { host: emailHost, port: emailPort }),
+  secure: emailSecure ?? emailPort === 465,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: emailUser,
+    pass: emailPass,
   },
 });
 
 export const sendEmail = async (to, subject, html) => {
   try {
     const mailOptions = {
-      from: `"SLMA Platform" <${process.env.EMAIL_FROM}>`,
+      from: `"SLMA Platform" <${emailFrom}>`,
       to,
       subject,
       html,

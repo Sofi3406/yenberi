@@ -86,8 +86,8 @@ export default function HomePage() {
             <h1 className="hero-title">{t('hero.title')}</h1>
             <p className="hero-subtitle">{t('hero.subtitle')}</p>
             <div className="hero-buttons">
-              <Link href="/auth/register" className="btn btn-primary btn-lg">
-                {t('hero.cta.register')} →
+              <Link href="/auth/login" className="btn btn-primary btn-lg">
+                {t('nav.login')} →
               </Link>
               <Link href="/about-silte" className="btn btn-outline btn-lg">
                 {t('hero.cta.learn')}

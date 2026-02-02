@@ -3,28 +3,49 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const parseBool = (value) =>
+  typeof value === 'string' ? value.toLowerCase() === 'true' : undefined;
+
+const emailHost = process.env.SMTP_HOST || process.env.EMAIL_HOST;
+const emailPort = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
+const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+const emailFrom = process.env.SMTP_FROM || process.env.EMAIL_FROM || emailUser;
+const emailService = process.env.SMTP_SERVICE || process.env.EMAIL_SERVICE;
+const emailSecure = parseBool(process.env.SMTP_SECURE || process.env.EMAIL_SECURE);
+const emailDisabled =
+  parseBool(process.env.SMTP_DISABLED || process.env.EMAIL_DISABLED) === true ||
+  !emailUser ||
+  !emailPass;
+const tlsRejectUnauthorized = parseBool(process.env.SMTP_TLS_REJECT_UNAUTHORIZED);
+
 // Create transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+const transporter = emailDisabled
+  ? nodemailer.createTransport({ jsonTransport: true })
+  : nodemailer.createTransport({
+      ...(emailService ? { service: emailService } : { host: emailHost, port: emailPort }),
+      secure: emailSecure ?? emailPort === 465,
+      auth: {
+        user: emailUser,
+        pass: emailPass,
+      },
+      ...(typeof tlsRejectUnauthorized === 'boolean'
+        ? { tls: { rejectUnauthorized: tlsRejectUnauthorized } }
+        : {}),
+    });
 
 // Test transporter connection
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Email transporter error:', error);
-  } else {
-    console.log('✅ Email server is ready to send messages');
-  }
-});
+if (emailDisabled) {
+  console.warn('⚠️ Email is disabled or missing SMTP credentials. Emails will be skipped.');
+} else {
+  transporter.verify((error) => {
+    if (error) {
+      console.error('❌ Email transporter error:', error);
+    } else {
+      console.log('✅ Email server is ready to send messages');
+    }
+  });
+}
 
 // ============================================
 // ✅ EXISTING FUNCTIONS - UNCHANGED BELOW

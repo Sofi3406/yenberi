@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import AuthWrapper from '@/components/AuthWrapper';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 
 export const metadata: Metadata = {
@@ -18,9 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <LanguageProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <AuthWrapper>{children}</AuthWrapper>
         </LanguageProvider>
       </body>
     </html>
