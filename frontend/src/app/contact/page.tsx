@@ -20,7 +20,7 @@ export default function ContactPage() {
 
   // Random contact information
   const contactInfo = {
-    organization: "Silte Ləmat Mehber Association",
+    organization: "Silte Lmat Mehber Association",
     mainOffice: {
       name: "SLMA Headquarters",
       address: "Worabe, Silte Zone, SNNPR, Ethiopia",
@@ -165,7 +165,7 @@ export default function ContactPage() {
         <div className="contact-header">
           <h1 className="contact-title">Contact Us</h1>
           <p className="contact-subtitle">
-            Get in touch with the Silte Ləmat Mehber Association. We're here to help with membership, 
+            Get in touch with the Silte Lmat Mehber Association. We're here to help with membership, 
             cultural programs, partnerships, and any questions you may have about our community initiatives.
           </p>
         </div>

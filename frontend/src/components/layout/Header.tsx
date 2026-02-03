@@ -11,21 +11,19 @@ const Header = () => {
   const user = authService.getCurrentUser();
   const isAuthenticated = !!user;
 
-  const navItems = isAuthenticated
-    ? [
-        { href: '/', label: t('nav.home') },
-        { href: '/about-silte', label: t('nav.about') },
-        { href: '/about-slma', label: t('nav.slma') },
-        { href: '/woredas', label: 'Woredas' },
-        { href: '/membership', label: t('nav.membership') },
-        { href: '/events', label: t('nav.events') },
-        { href: '/gallery', label: t('nav.gallery') },
-        { href: '/projects', label: t('nav.projects') },
-        { href: '/donate', label: t('nav.donate') },
-        { href: '/contact', label: 'Contact Us' },
-        { href: '/co-founders', label: t('co-founders') }
-      ]
-    : [];
+  const navItems = [
+    { href: '/', label: t('nav.home') },
+    { href: '/about-silte', label: t('nav.about') },
+    { href: '/about-slma', label: t('nav.slma') },
+    { href: '/woredas', label: 'Woredas' },
+    { href: '/membership', label: t('nav.membership') },
+    { href: '/events', label: t('nav.events') },
+    { href: '/gallery', label: t('nav.gallery') },
+    { href: '/projects', label: t('nav.projects') },
+    { href: '/donate', label: t('nav.donate') },
+    { href: '/contact', label: 'Contact Us' },
+    { href: '/co-founders', label: t('co-founders') }
+  ];
 
   // Add admin area link if current user is admin
   if (isAuthenticated && authService.isAdmin()) {

@@ -16,7 +16,9 @@ import {
   UserCheck,
   XCircle,
   Settings,
-  Bell
+  Bell,
+  FolderKanban,
+  Image
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -132,6 +134,20 @@ export default function AdminDashboardPage() {
       href: '/admin/events',
       color: 'bg-purple-500',
       count: stats?.totalEvents || 0
+    },
+    {
+      title: 'Manage Projects',
+      description: 'Create and manage community projects',
+      icon: <FolderKanban className="w-8 h-8" />,
+      href: '/admin/projects',
+      color: 'bg-emerald-500'
+    },
+    {
+      title: 'Manage Galleries',
+      description: 'Upload and manage gallery items',
+      icon: <Image className="w-8 h-8" />,
+      href: '/admin/galleries',
+      color: 'bg-rose-500'
     },
     {
       title: 'User Verifications',

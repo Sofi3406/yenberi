@@ -129,7 +129,7 @@ export default function LoginPage() {
               <div className="login-logo">
                 <span className="login-logo-text">SL</span>
               </div>
-              <h1 className="login-title">Silte Ləmat Mehber</h1>
+              <h1 className="login-title">Silte Lmat Mehber</h1>
               <p className="login-subtitle">Welcome back to SLMA Community</p>
             </div>
           </div>

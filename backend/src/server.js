@@ -15,6 +15,7 @@ import adminRoutes from './routes/admin.js';
 import galleryRoutes from './routes/galleries.js';
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
+import projectRoutes from './routes/projects.js';
 
 // Import email service and payment reminder
 import { testEmailService, sendMonthlyPaymentReminder } from './services/emailService.js';
@@ -69,6 +70,8 @@ app.use('/uploads/donation-receipts', express.static(path.join(__dirname, '../up
 app.use('/uploads/event-images', express.static(path.join(__dirname, '../uploads/event-images')));
 app.use('/uploads/receipts', express.static(path.join(__dirname, '../uploads/receipts')));
 app.use('/uploads/registration', express.static(path.join(__dirname, '../uploads/registration')));
+app.use('/uploads/galleries', express.static(path.join(__dirname, '../uploads/galleries')));
+app.use('/uploads/project-images', express.static(path.join(__dirname, '../uploads/project-images')));
 
 // ============================================
 // ✅ HEALTH CHECK ENDPOINT
@@ -238,6 +241,7 @@ app.use('/api/activities', activitiesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/users', adminUsersRoutes);
 app.use('/api/admin', adminRoutes); 
+app.use('/api/projects', projectRoutes);
 
 // ============================================
 // ✅ 404 HANDLER
@@ -313,7 +317,9 @@ const server = app.listen(PORT, async () => {
       path.join(__dirname, '../uploads'),
       path.join(__dirname, '../uploads/donation-receipts'),
       path.join(__dirname, '../uploads/event-images'),
-      path.join(__dirname, '../uploads/receipts')
+      path.join(__dirname, '../uploads/receipts'),
+      path.join(__dirname, '../uploads/galleries'),
+      path.join(__dirname, '../uploads/project-images')
     ];
     
     for (const dir of uploadDirs) {

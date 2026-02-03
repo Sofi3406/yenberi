@@ -1,28 +1,38 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { 
   Users, 
-  Target, 
   Calendar, 
   MapPin, 
   Heart, 
-  TrendingUp,
   ChevronRight,
-  BookOpen,
-  Globe,
-  Award,
-  Zap,
   Filter,
   Eye,
-  Download,
-  Activity,
-  Heart as HealthIcon
+  Download
 } from 'lucide-react';
+import { fetchProjects } from '@/lib/projectsApi';
+
+interface ProjectItem {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  location?: string;
+  timeline?: string;
+  participants?: number;
+  progress?: number;
+  impact?: string;
+  image?: string;
+  createdAt: string;
+}
 
 export default function ProjectsPage() {
   const [activeFilter, setActiveFilter] = useState('all');
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const projectCategories = [
     { id: 'all', label: 'All Projects' },
@@ -34,141 +44,26 @@ export default function ProjectsPage() {
     { id: 'health', label: 'Health & Wellness' }, // Added Health category
   ];
 
-  const projects = [
-    {
-      id: 1,
-      title: "Silte Language Digital Archive",
-      description: "Creating a comprehensive digital archive of Silte language materials including audio recordings, texts, and educational resources for future generations.",
-      category: "culture",
-      status: "active",
-      location: "Worabe, SNNPR",
-      timeline: "2023-2025",
-      participants: 45,
-      progress: 65,
-      impact: "Language preservation",
-      imageColor: "bg-blue-100",
-      icon: <BookOpen className="w-6 h-6 text-blue-600" />
-    },
-    {
-      id: 2,
-      title: "Youth Leadership Program",
-      description: "Training program for young Silte community members to develop leadership skills and prepare for community service roles.",
-      category: "youth",
-      status: "active",
-      location: "Multiple Woredas",
-      timeline: "2024 Ongoing",
-      participants: 120,
-      progress: 40,
-      impact: "Youth empowerment",
-      imageColor: "bg-green-100",
-      icon: <Target className="w-6 h-6 text-green-600" />
-    },
-    {
-      id: 3,
-      title: "Silte Heritage Museum",
-      description: "Establishing a community museum to showcase Silte cultural artifacts, traditional clothing, and historical documents.",
-      category: "heritage",
-      status: "upcoming",
-      location: "Worabe Town",
-      timeline: "2025-2026",
-      participants: 0,
-      progress: 10,
-      impact: "Cultural tourism",
-      imageColor: "bg-purple-100",
-      icon: <Award className="w-6 h-6 text-purple-600" />
-    },
-    {
-      id: 4,
-      title: "Agricultural Modernization",
-      description: "Introducing modern farming techniques and sustainable agriculture practices to Silte farming communities.",
-      category: "community",
-      status: "completed",
-      location: "Rural Woredas",
-      timeline: "2022-2023",
-      participants: 300,
-      progress: 100,
-      impact: "Economic growth",
-      imageColor: "bg-amber-100",
-      icon: <TrendingUp className="w-6 h-6 text-amber-600" />
-    },
-    {
-      id: 5,
-      title: "Digital Skills Training",
-      description: "Providing digital literacy and technology skills training to community members, focusing on youth and women.",
-      category: "education",
-      status: "active",
-      location: "Community Centers",
-      timeline: "2024 Ongoing",
-      participants: 85,
-      progress: 75,
-      impact: "Digital inclusion",
-      imageColor: "bg-indigo-100",
-      icon: <Zap className="w-6 h-6 text-indigo-600" />
-    },
-    {
-      id: 6,
-      title: "Diaspora Connection Program",
-      description: "Building bridges between Silte communities in Ethiopia and diaspora members worldwide through digital platforms and events.",
-      category: "community",
-      status: "active",
-      location: "Global",
-      timeline: "2023-2024",
-      participants: 500,
-      progress: 90,
-      impact: "Global networking",
-      imageColor: "bg-cyan-100",
-      icon: <Globe className="w-6 h-6 text-cyan-600" />
-    },
-    // NEW HEALTH PROJECTS
-    {
-      id: 7,
-      title: "Community Health Outreach",
-      description: "Mobile health clinics providing basic healthcare services, health education, and preventive care to rural Silte communities.",
-      category: "health",
-      status: "active",
-      location: "Rural Communities",
-      timeline: "2023-2024",
-      participants: 18,
-      progress: 80,
-      impact: "Improved healthcare access",
-      imageColor: "bg-pink-100",
-      icon: <HealthIcon className="w-6 h-6 text-pink-600" />
-    },
-    {
-      id: 8,
-      title: "Mental Health Awareness Program",
-      description: "Promoting mental health awareness and providing counseling services to address community mental health challenges.",
-      category: "health",
-      status: "upcoming",
-      location: "All Woredas",
-      timeline: "2025",
-      participants: 0,
-      progress: 15,
-      impact: "Mental wellness",
-      imageColor: "bg-rose-100",
-      icon: <Activity className="w-6 h-6 text-rose-600" />
-    },
-  ];
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setLoading(true);
+        const params = activeFilter === 'all' ? {} : { category: activeFilter };
+        const data = await fetchProjects(params as Record<string, string | number>);
+        setProjects(data.data || []);
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const featuredProject = {
-    id: 9,
-    title: "Hayrenzi Cultural Revival Project",
-    description: "Preserving and promoting Silte heritage through traditional crafts, music, and community gatherings that reconnect our people with their roots.",
-    category: "culture",
-    status: "active",
-    location: "Silte Zone Communities",
-    timeline: "Ongoing",
-    participants: 850,
-    progress: 70,
-    impact: "Cultural preservation",
-    budget: "ETB 500,000",
-    sponsors: 8,
-    imageUrl: "/images/hayrenzi.jpg"
-  };
+    loadProjects();
+  }, [activeFilter]);
 
-  const filteredProjects = activeFilter === 'all' 
-    ? projects 
-    : projects.filter(project => project.category === activeFilter);
+  const filteredProjects = useMemo(() => projects, [projects]);
+  const featuredProject = filteredProjects[0];
 
   const participationSteps = [
     {
@@ -221,103 +116,125 @@ export default function ProjectsPage() {
 
         {/* Projects Grid */}
         <div className="projects-grid">
-          {filteredProjects.map(project => (
-            <div key={project.id} className="project-card">
-              <div className="project-status-container">
-                <span className={`project-status status-${project.status}`}>
-                  {project.status}
-                </span>
-              </div>
-              
-              <div className={`project-image-container ${project.imageColor}`}>
-                <div className="flex items-center justify-center h-full">
-                  {project.icon}
-                </div>
-                <div className="project-category">
-                  {projectCategories.find(c => c.id === project.category)?.label}
-                </div>
-              </div>
-
+          {loading ? (
+            <div className="project-card">
               <div className="project-content">
-                <h3 className="project-title">{project.title}</h3>
-                <p className="project-description">{project.description}</p>
-                
-                <div className="project-stats">
-                  <div className="stat-item">
-                    <MapPin className="stat-icon" />
-                    <span>{project.location}</span>
-                  </div>
-                  <div className="stat-item">
-                    <Users className="stat-icon" />
-                    <span>{project.participants} participants</span>
-                  </div>
-                  <div className="stat-item">
-                    <Calendar className="stat-icon" />
-                    <span>{project.timeline}</span>
-                  </div>
-                </div>
-
-                <div className="project-progress">
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill" 
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
-                  </div>
-                  <div className="progress-text">{project.progress}% complete</div>
-                </div>
-
-                <div className="project-actions">
-                  <Link href={`/projects/${project.id}`} className="project-button primary">
-                    <Eye className="inline w-4 h-4 mr-1" />
-                    View Details
-                  </Link>
-                  <button className="project-button secondary">
-                    <Heart className="inline w-4 h-4 mr-1" />
-                    Support
-                  </button>
-                </div>
+                <p className="project-description">Loading projects...</p>
               </div>
             </div>
-          ))}
+          ) : filteredProjects.length === 0 ? (
+            <div className="project-card">
+              <div className="project-content">
+                <p className="project-description">No projects available yet.</p>
+              </div>
+            </div>
+          ) : (
+            filteredProjects.map(project => (
+              <div key={project._id} className="project-card">
+                <div className="project-status-container">
+                  <span className={`project-status status-${project.status}`}>
+                    {project.status}
+                  </span>
+                </div>
+                
+                <div className="project-image-container" style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+                  {!project.image && (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="project-category">
+                        {projectCategories.find(c => c.id === project.category)?.label}
+                      </div>
+                    </div>
+                  )}
+                  {project.image && (
+                    <div className="project-category">
+                      {projectCategories.find(c => c.id === project.category)?.label}
+                    </div>
+                  )}
+                </div>
+
+                <div className="project-content">
+                  <h3 className="project-title">{project.title}</h3>
+                  <p className="project-description">{project.description}</p>
+                  
+                  <div className="project-stats">
+                    <div className="stat-item">
+                      <MapPin className="stat-icon" />
+                      <span>{project.location || 'N/A'}</span>
+                    </div>
+                    <div className="stat-item">
+                      <Users className="stat-icon" />
+                      <span>{project.participants || 0} participants</span>
+                    </div>
+                    <div className="stat-item">
+                      <Calendar className="stat-icon" />
+                      <span>{project.timeline || 'Ongoing'}</span>
+                    </div>
+                  </div>
+
+                  <div className="project-progress">
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ width: `${project.progress || 0}%` }}
+                      ></div>
+                    </div>
+                    <div className="progress-text">{project.progress || 0}% complete</div>
+                  </div>
+
+                  <div className="project-actions">
+                    <Link href={`/projects/${project._id}`} className="project-button primary">
+                      <Eye className="inline w-4 h-4 mr-1" />
+                      View Details
+                    </Link>
+                    <button className="project-button secondary">
+                      <Heart className="inline w-4 h-4 mr-1" />
+                      Support
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Featured Project */}
-        <div className="featured-projects">
-          <div className="featured-header">
-            <h2 className="featured-title">Featured Project</h2>
-            <p className="featured-subtitle">Our flagship initiative making significant impact</p>
-          </div>
-
-          <div className="featured-card">
-            <div className="featured-content">
-              <span className="featured-badge">Flagship Initiative</span>
-              <h3 className="featured-project-title">{featuredProject.title}</h3>
-              
-              <div className="project-actions">
-                <Link href={`/projects/${featuredProject.id}`} className="project-button primary">
-                  Learn More <ChevronRight className="inline w-4 h-4 ml-1" />
-                </Link>
-                <button className="project-button secondary">
-                  <Download className="inline w-4 h-4 mr-1" />
-                  Download Prospectus
-                </button>
-              </div>
+        {featuredProject && (
+          <div className="featured-projects">
+            <div className="featured-header">
+              <h2 className="featured-title">Featured Project</h2>
+              <p className="featured-subtitle">Our flagship initiative making significant impact</p>
             </div>
-            
-            <div 
-              className="featured-image" 
-              style={{ backgroundImage: `url(${featuredProject.imageUrl})` }}
-            >
-              <div className="featured-overlay">
-                <div className="text-white">
-                  <div className="text-sm opacity-80">{featuredProject.location}</div>
-                  <div className="text-lg font-semibold">{featuredProject.timeline}</div>
+
+            <div className="featured-card">
+              <div className="featured-content">
+                <span className="featured-badge">Flagship Initiative</span>
+                <h3 className="featured-project-title">{featuredProject.title}</h3>
+                
+                <div className="project-actions">
+                  <Link href={`/projects/${featuredProject._id}`} className="project-button primary">
+                    Learn More <ChevronRight className="inline w-4 h-4 ml-1" />
+                  </Link>
+                  <button className="project-button secondary">
+                    <Download className="inline w-4 h-4 mr-1" />
+                    Download Prospectus
+                  </button>
+                </div>
+              </div>
+              
+              <div 
+                className="featured-image" 
+                style={{ backgroundImage: `url(${featuredProject.image || '/images/hayrenzi.jpg'})` }}
+              >
+                <div className="featured-overlay">
+                  <div className="text-white">
+                    <div className="text-sm opacity-80">{featuredProject.location || 'Silte Zone'}</div>
+                    <div className="text-lg font-semibold">{featuredProject.timeline || 'Ongoing'}</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* How to Participate */}
         <div className="participation-section">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { 
   Filter, 
@@ -31,11 +31,24 @@ import {
   BookOpen,
   Home
 } from 'lucide-react';
+import { fetchGalleries } from '@/lib/galleriesApi';
+
+interface GalleryItem {
+  _id: string;
+  title: string;
+  description?: string;
+  category: string;
+  image?: string;
+  location?: string;
+  createdAt: string;
+}
 
 export default function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const galleryCategories = [
     { id: 'all', label: 'All Media' },
@@ -73,203 +86,23 @@ export default function GalleryPage() {
     }
   ];
 
-  const galleryItems = [
-    {
-      id: 1,
-      title: 'Worabe Comprehensive Hospital',
-      description: 'State-of-the-art medical facility serving Silte Zone',
-      type: 'photo',
-      category: 'healthcare',
-      likes: 342,
-      comments: 56,
-      views: 1850,
-      date: '2023',
-      location: 'Worabe, Silte Zone',
-      image: '/images/hospital.jpg'
-    },
-    {
-      id: 2,
-      title: 'Hospital Main Entrance',
-      description: 'Modern healthcare facility entrance',
-      type: 'photo',
-      category: 'healthcare',
-      likes: 289,
-      comments: 42,
-      views: 1620,
-      date: '2023',
-      location: 'Worabe Hospital',
-      image: '/images/hospital2.jpg'
-    },
-    {
-      id: 3,
-      title: 'Hospital Interior',
-      description: 'Advanced medical equipment and facilities',
-      type: 'photo',
-      category: 'healthcare',
-      likes: 256,
-      comments: 38,
-      views: 1450,
-      date: '2023',
-      location: 'Worabe Hospital',
-      image: '/images/hospital3.jpg'
-    },
-    {
-      id: 4,
-      title: 'Hospital Campus',
-      description: 'Beautiful hospital grounds and environment',
-      type: 'photo',
-      category: 'healthcare',
-      likes: 234,
-      comments: 35,
-      views: 1380,
-      date: '2023',
-      location: 'Worabe Hospital',
-      image: '/images/hospital4.jpg'
-    },
-    {
-      id: 5,
-      title: 'Hayrenzi Preparatory School',
-      description: 'Premier educational institution with modern facilities',
-      type: 'photo',
-      category: 'education',
-      likes: 456,
-      comments: 78,
-      views: 2450,
-      date: '2022',
-      location: 'Worabe, Silte Zone',
-      image: '/images/hayrenzi.jpg'
-    },
-    {
-      id: 6,
-      title: 'Hayrenzi School Campus',
-      description: 'Beautiful school grounds and buildings',
-      type: 'photo',
-      category: 'education',
-      likes: 421,
-      comments: 65,
-      views: 1850,
-      date: '2022',
-      location: 'Hayrenzi School',
-      image: '/images/hayrenzi2.jpg'
-    },
-    {
-      id: 7,
-      title: 'Hayrenzi Students',
-      description: 'Students engaged in learning activities',
-      type: 'photo',
-      category: 'education',
-      likes: 378,
-      comments: 59,
-      views: 1980,
-      date: '2024',
-      location: 'Hayrenzi School',
-      image: '/images/hayrenziStudent.jpg'
-    },
-    {
-      id: 8,
-      title: 'Female Students',
-      description: 'Empowering education for girls',
-      type: 'photo',
-      category: 'education',
-      likes: 412,
-      comments: 71,
-      views: 2670,
-      date: '2024',
-      location: 'Hayrenzi School',
-      image: '/images/femaleStu.jpg'
-    },
-    {
-      id: 9,
-      title: 'Student Dormitory',
-      description: 'Modern student accommodation facilities',
-      type: 'photo',
-      category: 'education',
-      likes: 298,
-      comments: 48,
-      views: 1750,
-      date: '2023',
-      location: 'Hayrenzi Campus',
-      image: '/images/dorm.jpg'
-    },
-    {
-      id: 10,
-      title: 'Worabe University',
-      description: 'Higher education institution in Silte Zone',
-      type: 'photo',
-      category: 'education',
-      likes: 521,
-      comments: 92,
-      views: 3120,
-      date: '2023',
-      location: 'Worabe University',
-      image: '/images/worabeUni.jpg'
-    },
-    {
-      id: 11,
-      title: 'Worabe University Campus',
-      description: 'University academic buildings and facilities',
-      type: 'photo',
-      category: 'education',
-      likes: 367,
-      comments: 59,
-      views: 2100,
-      date: '2023',
-      location: 'Worabe University',
-      image: '/images/worabeUniv.jpg'
-    },
-    {
-      id: 12,
-      title: 'Worabe Town Hall',
-      description: 'Administrative center of Worabe city',
-      type: 'photo',
-      category: 'infrastructure',
-      likes: 433,
-      comments: 83,
-      views: 2890,
-      date: '2022',
-      location: 'Worabe City Center',
-      image: '/images/worabeHall.jpg'
-    },
-    {
-      id: 13,
-      title: 'Worabe Cultural Museum',
-      description: 'Preserving the rich heritage and artifacts of Silte people',
-      type: 'photo',
-      category: 'cultural',
-      likes: 391,
-      comments: 67,
-      views: 2340,
-      date: '2021',
-      location: 'Worabe Cultural Center',
-      image: '/images/worabeMusseum.jpg'
-    },
-    {
-      id: 14,
-      title: 'Silte Coffee Plantation',
-      description: 'Traditional coffee farming in Silte Zone',
-      type: 'photo',
-      category: 'community',
-      likes: 325,
-      comments: 52,
-      views: 1870,
-      date: '2023',
-      location: 'Hulbarag Coffee Farms',
-      image: '/images/plant.jpg'
-    },
-    {
-      id: 15,
-      title: 'SLMA Organization',
-      description: 'Official logo of Silte Ləmat Mehber',
-      type: 'photo',
-      category: 'community',
-      likes: 478,
-      comments: 91,
-      views: 3150,
-      date: '2024',
-      location: 'SLMA Headquarters',
-      image: '/images/logo.jpg'
-    },
-  ];
+  useEffect(() => {
+    const loadGalleries = async () => {
+      try {
+        setLoading(true);
+        const params = activeFilter === 'all' ? {} : { category: activeFilter };
+        const data = await fetchGalleries(params as Record<string, string>);
+        setItems(data.data || []);
+      } catch (error) {
+        console.error('Error loading galleries:', error);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGalleries();
+  }, [activeFilter]);
 
   const videos = [
     {
@@ -326,11 +159,9 @@ export default function GalleryPage() {
     { number: '10,420', label: 'Total Views' }
   ];
 
-  const filteredItems = activeFilter === 'all' 
-    ? galleryItems 
-    : galleryItems.filter(item => item.category === activeFilter);
+  const filteredItems = useMemo(() => items, [items]);
 
-  const openLightbox = (item) => {
+  const openLightbox = (item: GalleryItem) => {
     setSelectedImage(item);
     setLightboxOpen(true);
   };
@@ -1026,23 +857,29 @@ export default function GalleryPage() {
         </div>
 
         {/* Gallery Grid */}
-        {filteredItems.length > 0 ? (
+        {loading ? (
+          <div className="no-media">
+            <Camera className="no-media-icon" />
+            <h3 className="no-media-title">Loading Media...</h3>
+            <p className="no-media-description">Please wait while we fetch the latest gallery items.</p>
+          </div>
+        ) : filteredItems.length > 0 ? (
           <div className="gallery-grid">
             {filteredItems.map((item) => (
               <div 
-                key={item.id} 
+                key={item._id} 
                 className="gallery-item"
                 onClick={() => openLightbox(item)}
               >
-                <div className={`media-badge badge-${item.type}`}>
-                  {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                <div className={`media-badge badge-photo`}>
+                  Photo
                 </div>
                 
                 <div className="gallery-image-container">
                   <div 
                     className="gallery-image"
                     style={{
-                      backgroundImage: `url(${item.image})`,
+                      backgroundImage: `url(${item.image || '/images/placeholder.jpg'})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }}
@@ -1053,26 +890,18 @@ export default function GalleryPage() {
                   <div className="overlay-content">
                     <div style={{ marginBottom: '0.5rem' }}>
                       <h4 className="overlay-title">{item.title}</h4>
-                      <p className="overlay-description">{item.description}</p>
+                      <p className="overlay-description">{item.description || ''}</p>
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.8)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Heart className="w-3 h-3" />
-                          <span>{item.likes}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <MessageCircle className="w-3 h-3" />
-                          <span>{item.comments}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <Eye className="w-3 h-3" />
-                          <span>{item.views}</span>
+                          <span>{item.category}</span>
                         </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)' }}>
-                        {item.location}
+                        {item.location || 'Silte Zone'}
                       </div>
                     </div>
                   </div>
