@@ -63,6 +63,8 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Static folders
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Legacy fallback for files saved under src/uploads
+app.use('/uploads', express.static(path.join(__dirname, './uploads')));
 app.use('/uploads/donation-receipts', express.static(path.join(__dirname, '../uploads/donation-receipts')));
 app.use('/uploads/event-images', express.static(path.join(__dirname, '../uploads/event-images')));
 app.use('/uploads/receipts', express.static(path.join(__dirname, '../uploads/receipts')));

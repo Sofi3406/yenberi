@@ -85,8 +85,8 @@ export default function AdminEventsPage() {
     try {
       setLoading(true);
       const token = authService.getToken();
-      
-      let url = `/api/events/admin/all?page=${currentPage}&limit=10`;
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      let url = `${API_BASE}/events/admin/all?page=${currentPage}&limit=10`;
       
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
@@ -506,9 +506,9 @@ export default function AdminEventsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
+                        <div className="h-8 w-8 flex-shrink-0">
                           <img
-                            className="h-10 w-10 rounded-lg object-cover"
+                            className="h-8 w-8 rounded-lg object-cover"
                             src={event.image || '/api/placeholder/40/40'}
                             alt={event.title}
                           />

@@ -6,8 +6,15 @@ import { protect as authenticate, authorize } from '../middlewares/auth.js';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { body, validationResult } from 'express-validator';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const router = express.Router();
+
+// ES module fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure multer for file upload
 const upload = multer({
@@ -29,12 +36,42 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Helper function to upload image to Cloudinary
-const uploadToCloudinary = (fileBuffer) => {
-  // If Cloudinary is not configured in env, return a default image URL for local/dev
-  if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET || !process.env.CLOUDINARY_CLOUD_NAME) {
-    console.warn('⚠️ Cloudinary credentials not set — using fallback image for event uploads');
-    return Promise.resolve({ secure_url: 'https://via.placeholder.com/800x450?text=Event+Image', public_id: null });
+const cloudinaryConfigured = Boolean(
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET &&
+  process.env.CLOUDINARY_CLOUD_NAME
+);
+
+const ensureEventUploadsDir = () => {
+  const dir = path.join(__dirname, '../../uploads/event-images');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+};
+
+const getBaseUrl = (req) => `${req.protocol}://${req.get('host')}`;
+
+const deleteLocalEventImage = (imageUrl) => {
+  if (!imageUrl || !imageUrl.includes('/uploads/event-images/')) return;
+  const filename = imageUrl.split('/uploads/event-images/')[1]?.split('?')[0];
+  if (!filename) return;
+  const filePath = path.join(__dirname, '../../uploads/event-images', filename);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+};
+
+// Helper function to upload image to Cloudinary or local storage
+const uploadEventImage = async (fileBuffer, originalName, req) => {
+  if (!cloudinaryConfigured) {
+    console.warn('⚠️ Cloudinary credentials not set — saving event image locally');
+    const uploadDir = ensureEventUploadsDir();
+    const ext = path.extname(originalName || '') || '.jpg';
+    const filename = `event-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    const filePath = path.join(uploadDir, filename);
+    await fs.promises.writeFile(filePath, fileBuffer);
+    return { secure_url: `${getBaseUrl(req)}/uploads/event-images/${filename}`, public_id: null, localFilename: filename };
   }
 
   return new Promise((resolve, reject) => {
@@ -488,7 +525,7 @@ router.post('/',
       // Handle image upload
       if (req.file) {
         try {
-          const uploadResult = await uploadToCloudinary(req.file.buffer);
+          const uploadResult = await uploadEventImage(req.file.buffer, req.file.originalname, req);
           imageUrl = uploadResult.secure_url;
           imagePublicId = uploadResult.public_id;
         } catch (uploadError) {
@@ -596,18 +633,20 @@ router.put('/:id',
 
       // Handle image update if new image provided
       if (req.file) {
-        // Delete old image from Cloudinary if exists
-        if (event.imagePublicId) {
-            try {
+        // Delete old image from Cloudinary or local storage
+        if (event.imagePublicId && cloudinaryConfigured) {
+          try {
             await cloudinary.uploader.destroy(event.imagePublicId);
           } catch (cloudinaryError) {
             console.warn('Failed to delete old image:', cloudinaryError);
           }
+        } else {
+          deleteLocalEventImage(event.image);
         }
 
         // Upload new image
         try {
-          const uploadResult = await uploadToCloudinary(req.file.buffer);
+          const uploadResult = await uploadEventImage(req.file.buffer, req.file.originalname, req);
           req.body.image = uploadResult.secure_url;
           req.body.imagePublicId = uploadResult.public_id;
         } catch (uploadError) {
