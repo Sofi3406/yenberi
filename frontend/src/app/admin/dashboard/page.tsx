@@ -18,7 +18,8 @@ import {
   Settings,
   Bell,
   FolderKanban,
-  Image
+  Image,
+  Users2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -148,6 +149,13 @@ export default function AdminDashboardPage() {
       icon: <Image className="w-8 h-8" />,
       href: '/admin/galleries',
       color: 'bg-rose-500'
+    },
+    {
+      title: 'Manage Co-Founders',
+      description: 'Add and update co-founder profiles',
+      icon: <Users2 className="w-8 h-8" />,
+      href: '/admin/co-founders',
+      color: 'bg-sky-500'
     },
     {
       title: 'User Verifications',

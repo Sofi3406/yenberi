@@ -16,6 +16,7 @@ import galleryRoutes from './routes/galleries.js';
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
 import projectRoutes from './routes/projects.js';
+import coFoundersRoutes from './routes/coFounders.js';
 
 // Import email service and payment reminder
 import { testEmailService, sendMonthlyPaymentReminder } from './services/emailService.js';
@@ -72,6 +73,7 @@ app.use('/uploads/receipts', express.static(path.join(__dirname, '../uploads/rec
 app.use('/uploads/registration', express.static(path.join(__dirname, '../uploads/registration')));
 app.use('/uploads/galleries', express.static(path.join(__dirname, '../uploads/galleries')));
 app.use('/uploads/project-images', express.static(path.join(__dirname, '../uploads/project-images')));
+app.use('/uploads/cofounders', express.static(path.join(__dirname, '../uploads/cofounders')));
 
 // ============================================
 // ✅ HEALTH CHECK ENDPOINT
@@ -242,6 +244,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/users', adminUsersRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api/projects', projectRoutes);
+app.use('/api/co-founders', coFoundersRoutes);
 
 // ============================================
 // ✅ 404 HANDLER

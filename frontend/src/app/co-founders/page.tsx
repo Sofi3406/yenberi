@@ -1,51 +1,22 @@
-import React from 'react';
+'use client';
 
-// SLMA Team Data
-const slmaTeam = [
-  {
-    name: 'Dr. Abdul Hafiz Jemal',
-    role: 'Junior Medical Doctor',
-    expertise: 'Emergency Medicine',
-    currentActivity: 'Assisting in clinical validation of SLMA\'s diagnostic algorithms',
-    background: 'Medical Doctor with <1 year clinical experience, passionate about AI-assisted triage',
-    slmaContribution: 'Contributes to real-world testing of SLMA\'s emergency protocols',
-    funFact: 'Fluent in Amharic and English, bridging local healthcare needs',
-    availability: 'available'
-  },
-  {
-    name: 'Mujib Sultan',
-    role: 'Biomedical Engineer',
-    expertise: 'Medical Device Integration & AI Systems',
-    currentActivity: 'Developing SLMA\'s hardware integration for portable diagnostics',
-    background: 'Biomedical Engineer with <1 year experience, specializing in healthcare technology',
-    slmaContribution: 'Building seamless integration between SLMA AI and medical devices',
-    funFact: 'Designed his first health monitoring prototype during university',
-    availability: 'busy'
-  },
-  {
-    name: 'Shikur Yasin',
-    role: 'Lead Pharmacist',
-    expertise: 'Pharmacology & Medication Safety',
-    currentActivity: 'Optimizing SLMA\'s drug interaction and dosage recommendation engine',
-    background: 'Pharmacist with 2+ years experience in clinical pharmacy and patient counseling',
-    slmaContribution: 'Enhanced SLMA\'s medication safety protocols and alerts',
-    funFact: 'Expert in local and international pharmacopeias',
-    availability: 'in-meeting'
-  },
-  {
-    name: 'Zehra Nesro',
-    role: 'Medical Laboratory Specialist',
-    expertise: 'Clinical Diagnostics & Lab Medicine',
-    currentActivity: 'Validating SLMA\'s lab result interpretation algorithms',
-    background: 'Medical Laboratory Medicine specialist with <1 year experience',
-    slmaContribution: 'Improved SLMA\'s accuracy in interpreting diagnostic test results',
-    funFact: 'Specializes in rapid diagnostic techniques for emergency settings',
-    availability: 'traveling'
-  }
-];
+import React, { useEffect, useState } from 'react';
+
+interface CoFounderItem {
+  _id: string;
+  name: string;
+  role: string;
+  expertise?: string;
+  currentActivity?: string;
+  background?: string;
+  slmaContribution?: string;
+  funFact?: string;
+  availability?: 'available' | 'busy' | 'in-meeting' | 'traveling';
+  image?: string;
+}
 
 // Helper functions
-const getAvailabilityText = (status) => {
+const getAvailabilityText = (status?: 'available' | 'busy' | 'in-meeting' | 'traveling') => {
   switch(status) {
     case 'available': return 'Available for Consult';
     case 'busy': return 'In Clinical Review';
@@ -55,7 +26,7 @@ const getAvailabilityText = (status) => {
   }
 };
 
-const getAvailabilityClass = (status) => {
+const getAvailabilityClass = (status?: 'available' | 'busy' | 'in-meeting' | 'traveling') => {
   switch(status) {
     case 'available': return 'slma-availability slma-availability-available';
     case 'busy': return 'slma-availability slma-availability-busy';
@@ -66,6 +37,29 @@ const getAvailabilityClass = (status) => {
 };
 
 export default function SLMACoFoundersPage() {
+  const [team, setTeam] = useState<CoFounderItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTeam = async () => {
+      try {
+        setLoading(true);
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_BASE}/co-founders`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to load co-founders');
+        setTeam(data.data || []);
+      } catch (error) {
+        console.error('Error loading co-founders:', error);
+        setTeam([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTeam();
+  }, []);
+
   return (
     <div className="slma-cofounders-page">
       <div className="slma-container">
@@ -153,10 +147,26 @@ export default function SLMACoFoundersPage() {
 
         {/* Team Grid */}
         <div className="slma-cofounders-grid">
-          {slmaTeam.map((member, index) => (
-            <div key={index} className="slma-founder-card">
+          {loading ? (
+            <div className="slma-founder-card">
+              <div className="slma-card-content">Loading team...</div>
+            </div>
+          ) : team.length === 0 ? (
+            <div className="slma-founder-card">
+              <div className="slma-card-content">No co-founders available.</div>
+            </div>
+          ) : (
+            team.map((member) => (
+              <div key={member._id} className="slma-founder-card">
               <div className="slma-medical-banner">
                 <div className="slma-founder-header">
+                  <div className="slma-founder-avatar">
+                    {member.image ? (
+                      <img src={member.image} alt={member.name} className="slma-founder-image" />
+                    ) : (
+                      <div className="slma-founder-placeholder">👤</div>
+                    )}
+                  </div>
                   <div>
                     <h2 className="slma-founder-name">{member.name}</h2>
                     <p className="slma-founder-role">{member.role}</p>
@@ -217,8 +227,9 @@ export default function SLMACoFoundersPage() {
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
 
         {/* Mission Statement */}
