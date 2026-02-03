@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<{ eventsAttended: number; totalDonations: number; totalMembers: number; communityEngagement: number } | null>(null);
   const [recentActivities, setRecentActivities] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,13 +110,20 @@ export default function DashboardPage() {
           setUser(currentUser);
         }
 
-        // Set mock stats for now (replace with actual API calls)
-        setStats({
-          totalMembers: 150,
-          eventsAttended: 12,
-          totalDonations: 5000,
-          communityEngagement: 85
-        });
+        // Fetch dashboard stats
+        try {
+          const statsRes = await api.get('/dashboard/stats');
+          if (statsRes.data?.success) {
+            setStats({
+              totalMembers: statsRes.data.totalMembers || 0,
+              eventsAttended: statsRes.data.eventsAttended || 0,
+              totalDonations: statsRes.data.totalDonations || 0,
+              communityEngagement: statsRes.data.communityEngagement || 0
+            });
+          }
+        } catch (statsErr) {
+          console.warn('Failed to fetch dashboard stats:', statsErr);
+        }
 
         // Fetch recent activities from API
         try {
@@ -126,23 +133,17 @@ export default function DashboardPage() {
           console.warn('Failed to fetch recent activities:', actErr);
         }
 
-        // Set mock upcoming events
-        setUpcomingEvents([
-          {
-            _id: '1',
-            title: 'Cultural Festival',
-            date: new Date(Date.now() + 86400000 * 7).toISOString(),
-            location: 'Addis Ababa',
-            type: 'cultural'
-          },
-          {
-            _id: '2',
-            title: 'Networking Mixer',
-            date: new Date(Date.now() + 86400000 * 14).toISOString(),
-            location: 'Online',
-            type: 'networking'
-          },
-        ]);
+        // Fetch upcoming events
+        try {
+          const eventsRes = await api.get('/events', {
+            params: { upcomingOnly: true, limit: 3, order: 'asc', sortBy: 'date' }
+          });
+          if (eventsRes.data?.success) {
+            setUpcomingEvents(eventsRes.data.data || []);
+          }
+        } catch (eventsErr) {
+          console.warn('Failed to fetch upcoming events:', eventsErr);
+        }
 
       } catch (err: any) {
         console.error('Dashboard error:', err);
@@ -247,6 +248,14 @@ export default function DashboardPage() {
     return null; // Will redirect via useEffect
   }
 
+  const getDonationType = () => {
+    const plan = user.membershipPlan || 'basic';
+    const amount = user.payment?.amount ?? (plan === 'premium' ? 1200 : plan === 'active' ? 500 : 0);
+    if (plan === 'premium') return `Premium (ETB ${amount})`;
+    if (plan === 'active') return `Basic (ETB ${amount})`;
+    return `Free (ETB ${amount})`;
+  };
+
   const dashboardStats = [
     { 
       label: 'Membership Status', 
@@ -256,7 +265,7 @@ export default function DashboardPage() {
     },
     { 
       label: 'Member Since', 
-      value: user.createdAt ? formatDate(user.createdAt) : '—', 
+      value: user.createdAt ? formatDate(user.createdAt) : user.membership?.startDate ? formatDate(user.membership.startDate) : '—', 
       icon: <Calendar className="text-blue-600 w-6 h-6" />
     },
     { 
@@ -265,8 +274,8 @@ export default function DashboardPage() {
       icon: <Users className="text-purple-600 w-6 h-6" />
     },
     { 
-      label: 'Total Donations', 
-      value: formatCurrency(stats?.totalDonations || 0), 
+      label: 'Donation Type', 
+      value: getDonationType(), 
       icon: <DollarSign className="text-orange-600 w-6 h-6" />
     },
   ];
