@@ -31,6 +31,8 @@ import {
   FileText,
   Receipt
 } from 'lucide-react';
+import { authService } from '@/services/authService';
+import api from '@/services/api';
 
 export default function DonatePage() {
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,10 @@ export default function DonatePage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [hoveredProject, setHoveredProject] = useState(null);
   const [activeTab, setActiveTab] = useState('donate');
+  const [adminDonations, setAdminDonations] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState('');
+  const [verificationInputs, setVerificationInputs] = useState({});
 
   // API Base URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -470,6 +476,57 @@ export default function DonatePage() {
       setShowPaymentInstructions(true);
     }
   }, []);
+
+  const loadAdminDonations = async () => {
+    if (!authService.isAdmin()) return;
+    try {
+      setAdminLoading(true);
+      setAdminError('');
+      const res = await api.get('/donations', {
+        params: { status: 'paid', limit: 50 }
+      });
+      setAdminDonations(res.data?.donations || []);
+    } catch (err) {
+      setAdminError('Failed to load donations');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAdminDonations();
+  }, []);
+
+  const handleVerificationInputChange = (donationId, field, value) => {
+    setVerificationInputs(prev => ({
+      ...prev,
+      [donationId]: {
+        referenceNumber: prev[donationId]?.referenceNumber || '',
+        notes: prev[donationId]?.notes || '',
+        [field]: value
+      }
+    }));
+  };
+
+  const handleVerifyDonation = async (donationId, status) => {
+    try {
+      const inputs = verificationInputs[donationId] || {};
+      await api.put(`/donations/${donationId}/verify`, {
+        status,
+        referenceNumber: inputs.referenceNumber || undefined,
+        verificationNotes: inputs.notes || undefined
+      });
+      setAdminDonations(prev => prev.filter(d => d._id !== donationId && d.id !== donationId));
+    } catch (err) {
+      setAdminError('Failed to verify donation');
+    }
+  };
+
+  const getReceiptUrl = (donation) => {
+    if (!donation?.receipt?.filename) return null;
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+    return `${baseUrl}/uploads/donation-receipts/${donation.receipt.filename}`;
+  };
 
   return (
     <div className="donate-page min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/10 to-purple-50/10 py-12 px-4 sm:px-6 lg:px-8">
@@ -1111,6 +1168,117 @@ export default function DonatePage() {
           </div>
         )}
       </div>
+
+      {authService.isAdmin() && (
+        <div className="mt-10">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Donation Receipt Verification</h2>
+                <p className="text-sm text-gray-600">Review and verify uploaded donation receipts.</p>
+              </div>
+              <button
+                onClick={loadAdminDonations}
+                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {adminError && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200">
+                {adminError}
+              </div>
+            )}
+
+            {adminLoading ? (
+              <div className="flex items-center gap-2 text-gray-600">
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                Loading donations...
+              </div>
+            ) : adminDonations.length === 0 ? (
+              <div className="text-sm text-gray-600">No pending receipts found.</div>
+            ) : (
+              <div className="space-y-4">
+                {adminDonations.map((donation) => {
+                  const receiptUrl = getReceiptUrl(donation);
+                  const donationId = donation._id || donation.id;
+                  return (
+                    <div key={donationId} className="border border-gray-200 rounded-xl p-4">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="text-sm text-gray-500">Transaction ID</div>
+                          <div className="font-semibold text-gray-900">{donation.transactionId}</div>
+                          <div className="text-sm text-gray-600">
+                            {donation.donor?.fullName} • {donation.donor?.email} • {donation.donor?.phone}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Amount: ETB {donation.amount} • Method: {donation.paymentMethod}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          {receiptUrl ? (
+                            <a
+                              href={receiptUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100"
+                            >
+                              <FileText className="w-4 h-4" />
+                              View Receipt
+                            </a>
+                          ) : (
+                            <div className="text-sm text-gray-500">No receipt file</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Reference Number (optional)</label>
+                          <input
+                            type="text"
+                            value={verificationInputs[donationId]?.referenceNumber || ''}
+                            onChange={(e) => handleVerificationInputChange(donationId, 'referenceNumber', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="Bank/TeleBirr reference"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Verification Notes (optional)</label>
+                          <input
+                            type="text"
+                            value={verificationInputs[donationId]?.notes || ''}
+                            onChange={(e) => handleVerificationInputChange(donationId, 'notes', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="Notes for donor"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                        <button
+                          onClick={() => handleVerifyDonation(donationId, 'verified')}
+                          className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleVerifyDonation(donationId, 'rejected')}
+                          className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Global CSS Styles */}
       <style jsx global>{`

@@ -25,11 +25,13 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
     // Build query based on admin role
     let userQuery = {};
     let eventQuery = {};
+    let donationQuery = { paymentStatus: 'paid' };
     
     if (adminRole === 'woreda_admin') {
       // Woreda admins can only see their woreda's data
       userQuery.woreda = adminWoreda;
       eventQuery.woreda = adminWoreda;
+      donationQuery.woreda = adminWoreda;
     }
     // Super admins can see all data (no query restrictions)
 
@@ -40,7 +42,8 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
       pendingVerifications,
       pendingPayments,
       verifiedPayments,
-      totalEvents
+      totalEvents,
+      pendingDonationReceipts
     ] = await Promise.all([
       // Total users
       User.countDocuments(userQuery),
@@ -75,7 +78,10 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
       }),
       
       // Total events
-      Event.countDocuments(eventQuery)
+      Event.countDocuments(eventQuery),
+
+      // Pending donation receipts (uploaded, awaiting verification)
+      Donation.countDocuments(donationQuery)
     ]);
 
     res.json({
@@ -86,7 +92,8 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
         pendingVerifications,
         pendingPayments,
         verifiedPayments,
-        totalEvents
+        totalEvents,
+        pendingDonationReceipts
       }
     });
   } catch (error) {

@@ -27,6 +27,7 @@ interface DashboardStats {
   totalEvents: number;
   activeMembers: number;
   verifiedPayments: number;
+  pendingDonationReceipts: number;
 }
 
 export default function AdminDashboardPage() {
@@ -116,6 +117,15 @@ export default function AdminDashboardPage() {
       badge: stats?.pendingPayments > 0 ? 'pending' : null
     },
     {
+      title: 'Verify Donations',
+      description: 'Review donation payment receipts',
+      icon: <FileText className="w-8 h-8" />,
+      href: '/admin/donations',
+      color: 'bg-teal-500',
+      count: stats?.pendingDonationReceipts || 0,
+      badge: stats?.pendingDonationReceipts > 0 ? 'pending' : null
+    },
+    {
       title: 'Manage Events',
       description: 'Create and manage community events',
       icon: <Calendar className="w-8 h-8" />,
@@ -162,6 +172,13 @@ export default function AdminDashboardPage() {
       icon: <Clock className="w-6 h-6" />,
       color: 'text-yellow-600 bg-yellow-100',
       change: stats?.pendingPayments > 0 ? 'Action needed' : 'All clear'
+    },
+    {
+      label: 'Pending Donations',
+      value: stats?.pendingDonationReceipts || 0,
+      icon: <FileText className="w-6 h-6" />,
+      color: 'text-teal-600 bg-teal-100',
+      change: stats?.pendingDonationReceipts > 0 ? 'Action needed' : 'All clear'
     },
     {
       label: 'Verified Payments',
