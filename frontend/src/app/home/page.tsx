@@ -210,7 +210,7 @@ export default function HomePage() {
             <Link href="/auth/register" className="btn btn-white">
               Become a Member
             </Link>
-            <Link href="/donate" className="btn btn-outline-white">
+            <Link href="/auth/register" className="btn btn-outline-white">
               Support Our Projects
             </Link>
           </div>

@@ -3,10 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, MapPin, Users, BookOpen, Heart, TrendingUp, Target, Award } from 'lucide-react';
+import { Calendar, MapPin, Users, BookOpen, Heart, TrendingUp, Target, Award, Check, ChevronDown } from 'lucide-react';
 
 export default function HomePage() {
   const { t } = useLanguage();
+  const [activeFAQ, setActiveFAQ] = React.useState<number | null>(0);
 
   const features = [
     {
@@ -77,6 +78,89 @@ export default function HomePage() {
     }
   ];
 
+  const membershipPlans = [
+    {
+      title: "Basic Member",
+      subtitle: "For individuals new to the community",
+      price: "Free",
+      period: "Annual membership",
+      features: [
+        "Access to community events",
+        "Monthly newsletter",
+        "Basic member directory access",
+        "Community forum participation",
+        "Limited cultural resource access"
+      ],
+      buttonText: "Join Free",
+      buttonVariant: "secondary" as const,
+      recommended: false
+    },
+    {
+      title: "Active Member",
+      subtitle: "Most popular choice",
+      price: "ETB 500",
+      period: "Per year",
+      features: [
+        "All Basic Member benefits",
+        "Priority event registration",
+        "Full member directory access",
+        "Voting rights in association",
+        "Access to all cultural resources",
+        "Member discount on merchandise",
+        "Digital membership card"
+      ],
+      recommended: true,
+      buttonText: "Become Active Member",
+      buttonVariant: "primary" as const
+    },
+    {
+      title: "Premium Member",
+      subtitle: "For dedicated community supporters",
+      price: "ETB 1,200",
+      period: "Per year",
+      features: [
+        "All Active Member benefits",
+        "VIP event invitations",
+        "Leadership committee eligibility",
+        "Mentorship program access",
+        "Annual recognition certificate",
+        "Free cultural workshop access",
+        "Personalized support",
+        "Early access to new programs"
+      ],
+      recommended: false,
+      buttonText: "Join Premium",
+      buttonVariant: "primary" as const
+    }
+  ];
+
+  const faqItems = [
+    {
+      question: "Who can become a member of SLMA?",
+      answer: "Anyone of Silte heritage or those married to Silte individuals can become members. We also welcome friends and supporters of the Silte community who wish to contribute to our cultural preservation efforts."
+    },
+    {
+      question: "How long does membership last?",
+      answer: "Membership is annual and renews automatically. You'll receive a reminder email 30 days before your membership expires. You can choose to renew, upgrade, or cancel at any time."
+    },
+    {
+      question: "Can I upgrade my membership plan?",
+      answer: "Yes, you can upgrade from Basic to Active or Premium at any time. The remaining value of your current membership will be prorated towards your upgraded plan."
+    },
+    {
+      question: "What payment methods do you accept?",
+      answer: "We accept mobile money ( CBE Birr)and bank transfers."
+    },
+    {
+      question: "Are there family membership options?",
+      answer: "Yes! We offer family packages for Active and Premium members. Contact our membership coordinator for details on family rates and benefits."
+    },
+    {
+      question: "How can I get involved beyond membership?",
+      answer: "We welcome volunteers for events, cultural programs, and community projects. Premium members get priority for leadership roles. Contact our volunteer coordinator to learn about current opportunities."
+    }
+  ];
+
   return (
     <div className="home-page">
       {/* Hero Section */}
@@ -106,29 +190,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section
-        className="stats-section"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), url('/images/tedbabelot.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        <div className="container">
-          <div className="stats-grid">
-            {stats.map((stat, index) => (
-              <div key={index} className="stat-card">
-                <div className="stat-number">{stat.number}</div>
-                <div className="stat-label">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section className="section">
         <div className="container">
@@ -152,6 +213,91 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Membership Plans (same style as /membership) */}
+      <section className="section">
+        <div className="container">
+          <div className="membership-header">
+            <h2 className="membership-title">Membership Plans</h2>
+            <p className="membership-subtitle">
+              Choose a plan that fits your goals and help strengthen the Silte community.
+            </p>
+            <p className="membership-tagline">
+              Together, we preserve our past, empower our present, and build our future.
+            </p>
+          </div>
+
+          <div className="membership-plans-grid">
+            {membershipPlans.map((plan, index) => (
+              <div key={index} className="membership-plan-card">
+                {plan.recommended && (
+                  <div className="recommended-badge">Most Popular</div>
+                )}
+                <div className="plan-header">
+                  <h3 className="plan-title">{plan.title}</h3>
+                  <p className="plan-subtitle">{plan.subtitle}</p>
+                  <div className="plan-price">
+                    <div className="price-amount">{plan.price}</div>
+                    <div className="price-period">{plan.period}</div>
+                  </div>
+                </div>
+
+                <div className="plan-features">
+                  <h4 className="features-title">Included Benefits</h4>
+                  <ul className="features-list">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="feature-item">
+                        <Check className="feature-icon" />
+                        <span className="feature-text">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="plan-footer">
+                  <button
+                    className={`select-plan-button ${plan.buttonVariant === 'secondary' ? 'secondary' : ''}`}
+                    onClick={() => window.location.href = `/auth/register?plan=${plan.title.toLowerCase().replace(' ', '-')}`}
+                  >
+                    {plan.buttonText}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          
+        </div>
+      </section>
+
+      {/* FAQ Section (same as /membership) */}
+      <section className="section">
+        <div className="container">
+          <div className="faq-section">
+            <div className="faq-header">
+              <h2 className="faq-title">Frequently Asked Questions</h2>
+              <p className="faq-description">
+                Find answers to common questions about SLMA membership
+              </p>
+            </div>
+
+            <div className="faq-accordion">
+              {faqItems.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <div
+                    className="faq-question"
+                    onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
+                  >
+                    <span>{faq.question}</span>
+                    <ChevronDown className={`faq-icon ${activeFAQ === index ? 'open' : ''}`} />
+                  </div>
+                  <div className={`faq-answer ${activeFAQ === index ? 'open' : ''}`}>{faq.answer}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Recent Activities */}
       <section className="activities-section">
         <div className="container">
@@ -164,7 +310,7 @@ export default function HomePage() {
 
           <div className="activities-grid">
             {recentActivities.map((activity) => (
-              <Link key={activity.id} href={`/events/${activity.id}`} className="activity-card">
+              <Link key={activity.id} href="/auth/register" className="activity-card">
                 <div className="activity-image">
                   <div style={{
                     width: '100%',
@@ -208,7 +354,7 @@ export default function HomePage() {
 
           <div className="woredas-grid">
             {woredas.map((woreda, index) => (
-              <Link key={index} href={`/woredas/${woreda.toLowerCase().replace(' ', '-')}`} className="woreda-tag">
+              <Link key={index} href="/auth/register" className="woreda-tag">
                 {woreda}
               </Link>
             ))}

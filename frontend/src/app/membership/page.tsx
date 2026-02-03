@@ -136,7 +136,7 @@ export default function MembershipPage() {
     },
     {
       question: "What payment methods do you accept?",
-      answer: "We accept mobile money (M-Pesa, CBE Birr), bank transfers, and credit/debit cards. For international members, we also accept PayPal and Wise transfers."
+      answer: "We accept mobile money ( CBE Birr)and bank transfers."
     },
     {
       question: "Are there family membership options?",

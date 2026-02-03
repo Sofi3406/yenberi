@@ -1337,6 +1337,87 @@ p {
 
 .slma-title span {
   color: #2563eb;
+.membership-highlight {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+}
+.membership-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .membership-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.membership-plan-card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.membership-plan-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(16, 185, 129, 0.15);
+}
+
+.membership-plan-card.featured {
+  border: 2px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 20px 50px rgba(16, 185, 129, 0.2);
+}
+
+.membership-plan-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.plan-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.plan-price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.membership-plan-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+  color: #6b7280;
+}
+
+.membership-plan-card li::before {
+  content: '✓';
+  color: #10b981;
+  margin-right: 0.5rem;
+}
+
+.membership-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
 }
 
 .slma-subtitle {
@@ -5465,6 +5546,8 @@ p {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
+  justify-items: center;
+  align-items: center;
 }
 
 @media (min-width: 768px) {
@@ -5476,6 +5559,9 @@ p {
 .stat-card {
   text-align: center;
   padding: 1.5rem;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
 }
 
 .stat-number {
@@ -5951,6 +6037,29 @@ p {
   font-size: 1.5rem;
   font-weight: bold;
   color: #111827;
+}
+
+/* Landing Stats Section Centering (override) */
+.stats-section .stats-grid {
+  justify-items: center;
+  align-items: center;
+}
+
+.stats-section .stat-card {
+  text-align: center;
+  max-width: 220px;
+  width: 100%;
+}
+
+/* Stronger specificity for landing page stats */
+.home-page .stats-section .stats-grid {
+  justify-items: center;
+  align-items: center;
+}
+
+.home-page .stats-section .stat-card {
+  margin: 0 auto;
+  text-align: center;
 }
 
 /* Membership Card */
@@ -13914,7 +14023,10 @@ html {
 /* Membership Page Enhancement Styles */
 
 .membership-page {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.12), transparent 45%),
+    radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.12), transparent 45%),
+    linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   min-height: 100vh;
 }
 
@@ -13929,11 +14041,12 @@ html {
   text-align: center;
   margin-bottom: 4rem;
   padding: 3rem 1rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.92) 100%);
   border-radius: 24px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
 .membership-header::before {
@@ -13956,6 +14069,16 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1.2;
+}
+
+.membership-title::after {
+  content: '';
+  display: block;
+  width: 90px;
+  height: 5px;
+  margin: 1rem auto 0;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
 }
 
 .membership-subtitle {
@@ -14001,11 +14124,12 @@ html {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
 }
 
 .membership-plan-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.15);
+  transform: translateY(-10px) scale(1.01);
+  box-shadow: 0 30px 60px -12px rgba(16, 185, 129, 0.2);
   border-color: rgba(16, 185, 129, 0.3);
 }
 
@@ -14040,6 +14164,11 @@ html {
   letter-spacing: 0.05em;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
   z-index: 10;
+}
+
+.recommended-badge::after {
+  content: '⭐';
+  margin-left: 0.5rem;
 }
 
 .plan-header {
@@ -14145,6 +14274,11 @@ html {
   overflow: hidden;
 }
 
+.select-plan-button:focus-visible {
+  outline: 3px solid rgba(16, 185, 129, 0.5);
+  outline-offset: 2px;
+}
+
 .select-plan-button::before {
   content: '';
   position: absolute;
@@ -14248,6 +14382,17 @@ html {
   padding: 2rem;
   text-align: center;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.benefit-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .benefit-card:hover {
@@ -14255,6 +14400,10 @@ html {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
   border-color: rgba(16, 185, 129, 0.3);
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.1);
+}
+
+.benefit-card:hover::after {
+  opacity: 1;
 }
 
 .benefit-icon {
@@ -14291,9 +14440,10 @@ html {
 .faq-section {
   margin-bottom: 4rem;
   padding: 3rem 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
   border-radius: 24px;
   border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
 
 .faq-header {
@@ -14342,6 +14492,7 @@ html {
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .faq-item:hover {
@@ -14358,6 +14509,18 @@ html {
   font-weight: 700;
   color: #1e293b;
   transition: all 0.3s ease;
+}
+
+.faq-question::after {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 0;
+  height: 1px;
+  background: rgba(226, 232, 240, 0.7);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .faq-question:hover {
