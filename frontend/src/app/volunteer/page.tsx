@@ -191,7 +191,7 @@ export default function VolunteerPage() {
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center max-w-2xl mx-auto">
               <Link
-                href="/auth/register"
+                href="/donate"
                 className="group relative px-12 py-4 bg-gradient-to-r from-white to-cyan-50 text-gray-900 text-lg font-bold rounded-2xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 shadow-xl overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
