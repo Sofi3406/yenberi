@@ -87,7 +87,6 @@ const RegistrationForm = () => {
     userType: '',
     currentResident: '',
     profession: '',
-    agreeToTerms: false,
   });
 
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -286,10 +285,6 @@ const RegistrationForm = () => {
       newErrors.receipt = 'Payment receipt is required for paid membership';
     }
     
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-    }
-    
     return newErrors;
   };
 
@@ -308,7 +303,7 @@ const RegistrationForm = () => {
     setUploadProgress(0);
     
     try {
-      const { confirmPassword, agreeToTerms, ...rest } = formData;
+      const { confirmPassword, ...rest } = formData;
       const registrationData = {
         ...rest,
         fatherName: formData.fatherName,
@@ -410,7 +405,6 @@ const RegistrationForm = () => {
         userType: '',
         currentResident: '',
         profession: '',
-        agreeToTerms: false,
       });
       setReceiptFile(null);
       setReceiptPreview(null);
@@ -1080,38 +1074,6 @@ const RegistrationForm = () => {
                 </div>
               </div>
             )}
-            
-            {/* Terms and conditions checkbox */}
-            <div className="form-group">
-              <div className="checkbox-group">
-                <input
-                  type="checkbox"
-                  id="agreeToTerms"
-                  name="agreeToTerms"
-                  checked={formData.agreeToTerms}
-                  onChange={handleChange}
-                  className={`checkbox-input ${errors.agreeToTerms ? 'checkbox-error' : ''}`}
-                  disabled={isLoading}
-                  aria-describedby={errors.agreeToTerms ? 'terms-error' : undefined}
-                />
-                <label htmlFor="agreeToTerms" className="checkbox-label">
-                  I agree to the{' '}
-                  <a href="/terms" className="checkbox-link" target="_blank" rel="noopener noreferrer">
-                    Terms and Conditions
-                  </a>{' '}
-                  and{' '}
-                  <a href="/privacy" className="checkbox-link" target="_blank" rel="noopener noreferrer">
-                    Privacy Policy
-                  </a>
-                  , and confirm that my payment receipt is authentic.
-                </label>
-              </div>
-              {errors.agreeToTerms && (
-                <span id="terms-error" className="error-message" role="alert">
-                  {errors.agreeToTerms}
-                </span>
-              )}
-            </div>
             
             {/* Submit button */}
             <button

@@ -15,7 +15,6 @@ export default function ContactPage() {
     subject: '',
     message: '',
     woreda: '',
-    agreeToPrivacy: false,
   });
 
   // Random contact information
@@ -121,13 +120,6 @@ export default function ContactPage() {
     setLoading(true);
     setResponse(null);
 
-    // Validate required fields
-    if (!formData.agreeToPrivacy) {
-      setResponse({ type: 'error', message: 'Please agree to the privacy policy' });
-      setLoading(false);
-      return;
-    }
-
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -146,7 +138,6 @@ export default function ContactPage() {
         subject: '',
         message: '',
         woreda: '',
-        agreeToPrivacy: false,
       });
       
     } catch (error) {
@@ -337,25 +328,6 @@ export default function ContactPage() {
                   required
                   rows={4}
                 />
-              </div>
-
-              <div className="form-group">
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    name="agreeToPrivacy"
-                    id="agreeToPrivacy"
-                    checked={formData.agreeToPrivacy}
-                    onChange={handleChange}
-                    className="checkbox-input"
-                    required
-                  />
-                  <label htmlFor="agreeToPrivacy" className="checkbox-label">
-                    I agree to the{' '}
-                    <a href="/privacy" className="checkbox-link">Privacy Policy</a>{' '}
-                    and consent to SLMA contacting me regarding this inquiry.
-                  </label>
-                </div>
               </div>
 
               <button

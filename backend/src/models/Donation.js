@@ -95,7 +95,7 @@ const donationSchema = new mongoose.Schema(
     // Payment Status
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'verified', 'failed', 'refunded'],
+      enum: ['pending', 'paid', 'verified', 'rejected', 'failed', 'refunded'],
       default: 'pending'
     },
     transactionId: {

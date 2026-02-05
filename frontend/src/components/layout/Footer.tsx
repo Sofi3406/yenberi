@@ -139,12 +139,6 @@ const Footer = () => {
             © {currentYear} Silte Lmat Mehber. All rights reserved.
           </div>
           <div className="footer-bottom-links">
-            <Link href="/privacy" className="bottom-link">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="bottom-link">
-              Terms of Service
-            </Link>
             <div className="credit">
               Made with <Heart className="heart-icon" /> by SLMA Community
             </div>

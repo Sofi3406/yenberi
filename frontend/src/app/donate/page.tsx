@@ -925,11 +925,7 @@ export default function DonatePage() {
                     className="w-4 h-4 text-purple-600 mt-1 rounded focus:ring-2 focus:ring-purple-500"
                   />
                   <span className="text-gray-700">
-                    I agree to the{' '}
-                    <a href="/privacy" className="text-purple-600 hover:text-purple-800 font-medium">
-                      Privacy Policy
-                    </a>{' '}
-                    and consent to SLMA contacting me regarding my donation. I confirm this donation is made voluntarily.
+                    I consent to SLMA contacting me regarding my donation. I confirm this donation is made voluntarily.
                   </span>
                 </label>
               </div>
