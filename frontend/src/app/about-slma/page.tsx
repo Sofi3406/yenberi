@@ -501,7 +501,7 @@ export default function AboutSLMAPage() {
               </p>
               
               <div className="cta-buttons">
-                <a href="/membership" className="btn btn-primary">Join SLMA Today</a>
+                <a href="/auth/register" className="btn btn-primary">Join SLMA Today</a>
                 <a href="/donate" className="btn btn-secondary">Support Our Projects</a>
                 <a href="/projects" className="btn btn-outline">View All Projects</a>
               </div>

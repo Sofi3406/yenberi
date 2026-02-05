@@ -179,7 +179,7 @@ export default function LoginPage() {
                     value={formData.email}
                     onChange={handleChange}
                     className="login-input"
-                    placeholder="you@example.com"
+                    placeholder="sofiyasin190@gmail.com"
                     required
                     disabled={loading}
                   />

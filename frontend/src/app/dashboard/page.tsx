@@ -367,12 +367,6 @@ export default function DashboardPage() {
               <div className="card-header">
                 <div className="card-header-content">
                   <h2 className="card-title">Membership Details</h2>
-                  <button
-                    onClick={() => router.push('/membership')}
-                    className="view-button"
-                  >
-                    View Details →
-                  </button>
                 </div>
               </div>
               

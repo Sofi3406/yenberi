@@ -31,6 +31,7 @@ interface DashboardStats {
   activeMembers: number;
   verifiedPayments: number;
   pendingDonationReceipts: number;
+  rejectedDonationReceipts: number;
 }
 
 export default function AdminDashboardPage() {
@@ -224,6 +225,13 @@ export default function AdminDashboardPage() {
       icon: <AlertCircle className="w-6 h-6" />,
       color: 'text-red-600 bg-red-100',
       change: stats?.pendingVerifications > 0 ? 'Review needed' : 'All clear'
+    },
+    {
+      label: 'Rejected Donations',
+      value: stats?.rejectedDonationReceipts || 0,
+      icon: <XCircle className="w-6 h-6" />,
+      color: 'text-rose-600 bg-rose-100',
+      change: stats?.rejectedDonationReceipts > 0 ? 'Follow up' : 'All clear'
     }
   ];
 

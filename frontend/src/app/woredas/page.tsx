@@ -298,9 +298,6 @@ export default function WoredasPage() {
           </p>
           
           <div className="cta-buttons">
-            <Link href="/membership" className="cta-button primary">
-              Join Your Woreda Group
-            </Link>
             <Link href="/events" className="cta-button secondary">
               View Woreda Events
             </Link>

@@ -247,7 +247,7 @@ export default function AboutSiltePage() {
             the rich cultural heritage of the Silte people for future generations.
           </p>
           <div className="cta-buttons">
-            <a href="/membership" className="btn btn-primary">Become a Member</a>
+            <a href="/auth/register" className="btn btn-primary">Join Our Community</a>
             <a href="/donate" className="btn btn-outline">Support Our Work</a>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, MapPin, Users, BookOpen, Heart, TrendingUp, Target, Award, Check, ChevronDown } from 'lucide-react';
+import { Calendar, Users, BookOpen, Heart, TrendingUp, Target, Award, Check, ChevronDown } from 'lucide-react';
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -48,33 +48,46 @@ export default function HomePage() {
     'Lanforo', 'East Azernet', 'West Azernet'
   ];
 
-  const recentActivities = [
+  const membershipReasons = [
     {
-      id: 1,
-      title: 'Silte Cultural Festival 2024',
-      description: 'Annual celebration featuring traditional music, dance, and food from all woredas.',
-      date: 'Dec 15, 2024',
-      location: 'Worabe Stadium',
-      type: 'event',
-      image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=400'
+      title: 'Community Network',
+      description: 'Connect with Silte community members worldwide and build meaningful relationships.',
+      icon: <Users className="w-8 h-8 text-blue-600" />
     },
     {
-      id: 2,
-      title: 'Language Preservation Workshop',
-      description: 'Training session for documenting and teaching Silte language to younger generations.',
-      date: 'Nov 28, 2024',
-      location: 'Community Center',
-      type: 'workshop',
-      image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400'
+      title: 'Cultural Preservation',
+      description: 'Participate in initiatives to preserve and promote Silte language, traditions, and heritage.',
+      icon: <Heart className="w-8 h-8 text-rose-600" />
     },
     {
-      id: 3,
-      title: 'Youth Leadership Summit',
-      description: 'Empowering young Silte leaders with skills and networking opportunities.',
-      date: 'Oct 20, 2024',
-      location: 'Conference Hall',
-      type: 'summit',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400'
+      title: 'Exclusive Events',
+      description: 'Access to cultural festivals, workshops, networking events, and community gatherings.',
+      icon: <Calendar className="w-8 h-8 text-green-600" />
+    },
+    {
+      title: 'Educational Resources',
+      description: 'Learning materials, language courses, and cultural documentation resources.',
+      icon: <BookOpen className="w-8 h-8 text-purple-600" />
+    },
+    {
+      title: 'Advocacy & Support',
+      description: 'Collective advocacy for community interests and mutual support network.',
+      icon: <Target className="w-8 h-8 text-amber-600" />
+    },
+    {
+      title: 'Global Connections',
+      description: 'Connect with Silte diaspora communities across different countries and regions.',
+      icon: <TrendingUp className="w-8 h-8 text-indigo-600" />
+    },
+    {
+      title: 'Leadership Development',
+      description: 'Opportunities for leadership roles and community project participation.',
+      icon: <Award className="w-8 h-8 text-teal-600" />
+    },
+    {
+      title: 'Social Impact',
+      description: 'Contribute to community development projects and social welfare initiatives.',
+      icon: <Heart className="w-8 h-8 text-red-600" />
     }
   ];
 
@@ -298,45 +311,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Recent Activities */}
+      {/* Why Join SLMA */}
       <section className="activities-section">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="section-title">Recent Activities</h2>
+            <h2 className="section-title">Why Join SLMA?</h2>
             <p className="section-description">
-              Stay updated with our latest events, workshops, and community initiatives
+              Your membership supports our community's growth and gives you access to exclusive benefits
             </p>
           </div>
 
-          <div className="activities-grid">
-            {recentActivities.map((activity) => (
-              <Link key={activity.id} href="/auth/register" className="activity-card">
-                <div className="activity-image">
-                  <div style={{
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: '#6b7280',
-                    backgroundImage: `url(${activity.image})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}></div>
-                  <span className="activity-badge">{activity.type}</span>
+          <div className="benefits-grid">
+            {membershipReasons.map((benefit, index) => (
+              <div key={index} className="benefit-card">
+                <div className="benefit-icon">
+                  {benefit.icon}
                 </div>
-                <div className="activity-content">
-                  <h3 className="activity-title">{activity.title}</h3>
-                  <p className="activity-description">{activity.description}</p>
-                  <div className="activity-meta">
-                    <span className="activity-date">
-                      <Calendar className="w-3 h-3" />
-                      {activity.date}
-                    </span>
-                    <span className="activity-location">
-                      <MapPin className="w-3 h-3" />
-                      {activity.location}
-                    </span>
-                  </div>
-                </div>
-              </Link>
+                <h3 className="benefit-title">{benefit.title}</h3>
+                <p className="benefit-description">{benefit.description}</p>
+              </div>
             ))}
           </div>
         </div>

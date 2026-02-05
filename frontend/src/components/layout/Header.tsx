@@ -16,7 +16,6 @@ const Header = () => {
     { href: '/about-silte', label: t('nav.about') },
     { href: '/about-slma', label: t('nav.slma') },
     { href: '/woredas', label: 'Woredas' },
-    { href: '/membership', label: t('nav.membership') },
     { href: '/events', label: t('nav.events') },
     { href: '/gallery', label: t('nav.gallery') },
     { href: '/projects', label: t('nav.projects') },

@@ -475,6 +475,16 @@ export const getDonationStats = asyncHandler(async (req, res) => {
             $sum: {
               $cond: [{ $eq: ['$paymentStatus', 'pending'] }, 1, 0]
             }
+          },
+          rejectedAmount: {
+            $sum: {
+              $cond: [{ $eq: ['$paymentStatus', 'rejected'] }, '$amount', 0]
+            }
+          },
+          rejectedCount: {
+            $sum: {
+              $cond: [{ $eq: ['$paymentStatus', 'rejected'] }, 1, 0]
+            }
           }
         }
       },
@@ -487,6 +497,8 @@ export const getDonationStats = asyncHandler(async (req, res) => {
           verifiedCount: 1,
           pendingAmount: 1,
           pendingCount: 1,
+          rejectedAmount: 1,
+          rejectedCount: 1,
           averageDonation: { $divide: ['$totalAmount', '$totalDonations'] }
         }
       }
@@ -544,6 +556,8 @@ export const getDonationStats = asyncHandler(async (req, res) => {
         verifiedCount: 0,
         pendingAmount: 0,
         pendingCount: 0,
+        rejectedAmount: 0,
+        rejectedCount: 0,
         averageDonation: 0
       },
       monthlyStats,

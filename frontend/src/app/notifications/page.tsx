@@ -97,12 +97,6 @@ export default function NotificationsPage() {
                 <p className="text-xs text-gray-500 mt-2">
                   Please ensure your payment is completed before this date to maintain your membership.
                 </p>
-                <Link
-                  href="/membership"
-                  className="inline-block mt-2 text-sm text-green-600 hover:text-green-800 font-medium"
-                >
-                  View membership →
-                </Link>
               </div>
             </div>
           )}

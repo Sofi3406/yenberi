@@ -18,18 +18,13 @@ const Footer = () => {
       { label: t('nav.slma'), href: '/about-slma' },
       { label: 'Co-Founders', href: '/co-founders' },
       { label: 'Contact Us', href: '/contact' },
-    ],
-    membership: [
-      { label: t('nav.membership'), href: '/membership' },
-      { label: 'Benefits', href: '/membership#benefits' },
-      { label: 'Register', href: '/auth/register' },
-      { label: 'Member Login', href: '/auth/login' },
+      { label: 'Woredas', href: '/woredas' },
     ],
     resources: [
+      { label: t('nav.donate'), href: '/donate' },
       { label: t('nav.events'), href: '/events' },
       { label: t('nav.gallery'), href: '/gallery' },
       { label: t('nav.projects'), href: '/projects' },
-      { label: 'News', href: '/news' },
     ],
   };
 
@@ -102,11 +97,11 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Membership */}
+          {/* Resources */}
           <div className="footer-section">
-            <h3 className="footer-section-title">Membership</h3>
+            <h3 className="footer-section-title">Resources</h3>
             <ul className="footer-links-list">
-              {footerLinks.membership.map((link) => (
+              {footerLinks.resources.map((link) => (
                 <li key={link.href} className="footer-link-item">
                   <Link
                     href={link.href}

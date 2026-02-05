@@ -43,7 +43,8 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
       pendingPayments,
       verifiedPayments,
       totalEvents,
-      pendingDonationReceipts
+      pendingDonationReceipts,
+      rejectedDonationReceipts
     ] = await Promise.all([
       // Total users
       User.countDocuments(userQuery),
@@ -81,7 +82,13 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
       Event.countDocuments(eventQuery),
 
       // Pending donation receipts (uploaded, awaiting verification)
-      Donation.countDocuments(donationQuery)
+      Donation.countDocuments(donationQuery),
+
+      // Rejected donation receipts
+      Donation.countDocuments({
+        ...donationQuery,
+        paymentStatus: 'rejected'
+      })
     ]);
 
     res.json({
@@ -93,7 +100,8 @@ router.get('/dashboard/stats', asyncHandler(async (req, res) => {
         pendingPayments,
         verifiedPayments,
         totalEvents,
-        pendingDonationReceipts
+        pendingDonationReceipts,
+        rejectedDonationReceipts
       }
     });
   } catch (error) {
