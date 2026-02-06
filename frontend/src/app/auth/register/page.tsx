@@ -1100,9 +1100,7 @@ const RegistrationForm = () => {
                   Sign in here
                 </Link>
               </p>
-              <p className="form-footer-note">
-                * Required fields
-              </p>
+             
             </div>
           </>
         )}

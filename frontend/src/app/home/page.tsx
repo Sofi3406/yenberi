@@ -102,9 +102,6 @@ export default function HomePage() {
               <Link href="/auth/login" className="btn btn-primary btn-lg">
                 {t('nav.login')} →
               </Link>
-              <Link href="/about-silte" className="btn btn-outline btn-lg">
-                {t('hero.cta.learn')}
-              </Link>
             </div>
           </div>
         </div>
