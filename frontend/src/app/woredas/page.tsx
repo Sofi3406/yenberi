@@ -23,96 +23,156 @@ export default function WoredasPage() {
   const [selectedType, setSelectedType] = useState('all');
 
   const woredas = [
-    { 
-      name: 'Worabe', 
-      slug: 'worabe', 
-      description: 'Capital city and administrative center of Silte Zone',
+    {
+      name: 'Worabe city administration',
+      slug: 'worabe',
+      description: 'Administrative capital and major service center of the zone.',
       type: 'urban',
-      population: '85,000',
-      established: '2000',
-      communities: 8,
-      area: '250 km²'
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
     },
-    { 
-      name: 'Hulbarag', 
-      slug: 'hulbarag', 
-      description: 'Agricultural woreda known for coffee and cereal production',
-      type: 'rural',
-      population: '120,000',
-      established: '1995',
-      communities: 12,
-      area: '480 km²'
-    },
-    { 
-      name: 'Sankura', 
-      slug: 'sankura', 
-      description: 'Historic woreda with rich cultural heritage sites',
-      type: 'rural',
-      population: '95,000',
-      established: '1992',
-      communities: 10,
-      area: '320 km²'
-    },
-    { 
-      name: 'Alicho', 
-      slug: 'alicho', 
-      description: 'Developing woreda with growing infrastructure',
-      type: 'mixed',
-      population: '78,000',
-      established: '2001',
-      communities: 9,
-      area: '290 km²'
-    },
-    { 
-      name: 'Silti', 
-      slug: 'silti', 
-      description: 'Cultural heartland with traditional practices',
-      type: 'rural',
-      population: '110,000',
-      established: '1993',
-      communities: 11,
-      area: '420 km²'
-    },
-    { 
-      name: 'Dalocha', 
-      slug: 'dalocha', 
-      description: 'Market town and commercial hub',
+    {
+      name: 'Alem Gebeya city administration',
+      slug: 'alem-gebeya-city-administration',
+      description: 'Emerging urban center supporting trade and local services.',
       type: 'urban',
-      population: '65,000',
-      established: '1998',
-      communities: 7,
-      area: '180 km²'
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
     },
-    { 
-      name: 'Lanforo', 
-      slug: 'lanforo', 
-      description: 'Highland woreda with livestock farming',
+    {
+      name: 'Qbet city administration',
+      slug: 'qbet-city-administration',
+      description: 'Local city administration focused on public services and markets.',
+      type: 'urban',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Tora city administration',
+      slug: 'tora-city-administration',
+      description: 'Growing city administration with expanding municipal services.',
+      type: 'urban',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Dalocha city administration',
+      slug: 'dalocha',
+      description: 'Commercial city administration and local trading hub.',
+      type: 'urban',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Silti woreda',
+      slug: 'silti',
+      description: 'Woreda with strong cultural heritage and rural livelihoods.',
       type: 'rural',
-      population: '82,000',
-      established: '1994',
-      communities: 8,
-      area: '350 km²'
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
     },
-    { 
-      name: 'East Azernet Berbere', 
-      slug: 'east-azernet-berbere', 
-      description: 'Border woreda with diverse ethnic communities',
-      type: 'mixed',
-      population: '105,000',
-      established: '1996',
-      communities: 13,
-      area: '520 km²'
-    },
-    { 
-      name: 'West Azernet Berbere', 
-      slug: 'west-azernet-berbere', 
-      description: 'Woreda with significant historical landmarks',
+    {
+      name: 'Misraq Silti woreda',
+      slug: 'misraq-silti-woreda',
+      description: 'Eastern Silti woreda with diverse rural communities.',
       type: 'rural',
-      population: '92,000',
-      established: '1997',
-      communities: 10,
-      area: '410 km²'
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
     },
+    {
+      name: 'Lanfro woreda',
+      slug: 'lanforo',
+      description: 'Highland woreda focused on agriculture and livestock.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Mitto woreda',
+      slug: 'mitto-woreda',
+      description: 'Rural woreda supporting local farming and community services.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Dalocha woreda',
+      slug: 'dalocha-woreda',
+      description: 'Woreda surrounding Dalocha with agricultural livelihoods.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Sankura woreda',
+      slug: 'sankura',
+      description: 'Woreda known for cultural heritage and rural settlements.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Wulbarag woreda',
+      slug: 'hulbarag',
+      description: 'Woreda with agricultural production and local markets.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Mirab Azernet Berbere woreda',
+      slug: 'west-azernet-berbere',
+      description: 'Western Azernet Berbere woreda with rural communities.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Misraq Azernet Berbere woreda',
+      slug: 'east-azernet-berbere',
+      description: 'Eastern Azernet Berbere woreda serving border communities.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    },
+    {
+      name: 'Alicho Woriro woreda',
+      slug: 'alicho',
+      description: 'Woreda with rural settlements and community development focus.',
+      type: 'rural',
+      population: '—',
+      established: '—',
+      communities: '—',
+      area: '—'
+    }
   ];
 
   const filteredWoredas = woredas.filter(woreda => {
@@ -267,7 +327,7 @@ export default function WoredasPage() {
               <Users className="info-icon" />
               <div className="info-text">
                 <h4>Community Structure</h4>
-                <p>Our nine woredas encompass hundreds of local communities, each maintaining unique traditions while contributing to our collective development.</p>
+                <p>Our fifteen woredas encompass hundreds of local communities, each maintaining unique traditions while contributing to our collective development.</p>
               </div>
             </div>
             

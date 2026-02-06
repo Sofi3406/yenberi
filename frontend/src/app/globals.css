@@ -243,6 +243,59 @@ p {
   overflow: hidden;
 }
 
+/* Header background banner */
+.header {
+  background-image: url('/images/header_logo.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.55);
+  z-index: 0;
+}
+
+.header-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-link {
+  color: #0f172a;
+}
+
+.nav-link:hover {
+  color: #0b3c2a;
+}
+
+.mobile-menu-btn,
+.language-btn,
+.site-title,
+.site-subtitle {
+  color: #0f172a;
+}
+
+/* Header Logo Banner */
+.header-logo-banner {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+  padding: 0;
+}
+
+.header-logo-banner img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
 .hero-section::before {
   content: '';
   position: absolute;
@@ -12569,13 +12622,35 @@ html {
 
 /* Main Header Container */
 .header {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background-image: url('/images/header_logo.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
   backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 0;
+}
+
+/* Landing page banner (image only, no nav) */
+.landing-banner {
+  width: 100%;
+  height: 120px;
+  background-image: url('/images/header_logo.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .header-container {
@@ -12586,6 +12661,8 @@ html {
   align-items: center;
   justify-content: space-between;
   height: 5rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* Logo Section */
@@ -12658,6 +12735,7 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  transition: color 0.3s ease, -webkit-text-fill-color 0.3s ease;
 }
 
 .site-subtitle {
@@ -12666,6 +12744,16 @@ html {
   margin: 0;
   font-weight: 500;
   letter-spacing: 0.025em;
+  transition: color 0.3s ease;
+}
+
+.header-logo-link:hover .site-title {
+  -webkit-text-fill-color: #0f172a;
+  color: #0f172a;
+}
+
+.header-logo-link:hover .site-subtitle {
+  color: #0f172a;
 }
 
 /* Navigation Links */
@@ -12677,7 +12765,7 @@ html {
 
 .nav-link {
   padding: 0.625rem 1rem;
-  color: #4b5563;
+  color: #0f172a;
   font-weight: 600;
   font-size: 0.875rem;
   text-decoration: none;
@@ -12701,7 +12789,7 @@ html {
 }
 
 .nav-link:hover {
-  color: #10b981;
+  color: #0b3c2a;
   background: rgba(16, 185, 129, 0.05);
 }
 

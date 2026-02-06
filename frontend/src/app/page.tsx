@@ -8,6 +8,26 @@ import { Calendar, Users, BookOpen, Heart, TrendingUp, Target, Award, Check, Che
 export default function HomePage() {
   const { t } = useLanguage();
   const [activeFAQ, setActiveFAQ] = React.useState<number | null>(0);
+  const [heroImageIndex, setHeroImageIndex] = React.useState(0);
+
+  const heroImages = [
+    '/images/worabeMusseum.jpg',
+    '/images/hayrenzi2.jpg',
+    '/images/hospita.jpg',
+    '/images/tedbabelot.png',
+    '/images/worabe_hospital.png',
+    '/images/Kilto_Hospital.png',
+    '/images/worabe_university.png',
+    '/images/worabeHall.jpg'
+  ];
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   const features = [
     {
@@ -39,13 +59,26 @@ export default function HomePage() {
   const stats = [
     { number: '2,500+', label: 'Active Members' },
     { number: '45+', label: 'Annual Events' },
-    { number: '12', label: 'Woredas Covered' },
+    { number: '15', label: 'Woredas Covered' },
     { number: '15', label: 'Community Projects' }
   ];
 
   const woredas = [
-    'Worabe', 'Hulbarag', 'Sankura', 'Alicho', 'Silti', 'Dalocha', 
-    'Lanforo', 'East Azernet', 'West Azernet'
+    { name: 'Worabe city administration', slug: 'worabe' },
+    { name: 'Alem Gebeya city administration', slug: 'alem-gebeya-city-administration' },
+    { name: 'Qbet city administration', slug: 'qbet-city-administration' },
+    { name: 'Tora city administration', slug: 'tora-city-administration' },
+    { name: 'Dalocha city administration', slug: 'dalocha' },
+    { name: 'Silti woreda', slug: 'silti' },
+    { name: 'Misraq Silti woreda', slug: 'misraq-silti-woreda' },
+    { name: 'Lanfro woreda', slug: 'lanforo' },
+    { name: 'Mitto woreda', slug: 'mitto-woreda' },
+    { name: 'Dalocha woreda', slug: 'dalocha-woreda' },
+    { name: 'Sankura woreda', slug: 'sankura' },
+    { name: 'Wulbarag woreda', slug: 'hulbarag' },
+    { name: 'Mirab Azernet Berbere woreda', slug: 'west-azernet-berbere' },
+    { name: 'Misraq Azernet Berbere woreda', slug: 'east-azernet-berbere' },
+    { name: 'Alicho Woriro woreda', slug: 'alicho' }
   ];
 
   const membershipReasons = [
@@ -181,7 +214,7 @@ export default function HomePage() {
         className="hero-section"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/images/worabeMusseum.jpg')",
+            `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('${heroImages[heroImageIndex]}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -338,14 +371,14 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="section-title">Our Woredas</h2>
             <p className="section-description">
-              Connecting communities across all nine Silte woredas
+              Connecting communities across all fifteen Silte woredas
             </p>
           </div>
 
           <div className="woredas-grid">
-            {woredas.map((woreda, index) => (
-              <Link key={index} href="/auth/register" className="woreda-tag">
-                {woreda}
+            {woredas.map((woreda) => (
+              <Link key={woreda.slug} href={`/woredas/${woreda.slug}`} className="woreda-tag">
+                {woreda.name}
               </Link>
             ))}
           </div>

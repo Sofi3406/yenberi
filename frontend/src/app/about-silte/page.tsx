@@ -4,8 +4,10 @@ export default function AboutSiltePage() {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="container">
-          <h1 className="hero-title">About Silte People</h1>
-          <p className="hero-subtitle">Preserving the rich heritage and culture of the Silte community</p>
+          <h1 className="hero-title">About Us</h1>
+          <p className="hero-subtitle">
+            Silte Zone Government Communication Affairs Department
+          </p>
         </div>
       </section>
 
@@ -14,183 +16,55 @@ export default function AboutSiltePage() {
         <div className="content-grid">
           {/* Left Column - Main Content */}
           <div className="main-content">
-            {/* Introduction */}
+            {/* About Us */}
             <section className="content-section">
-              <h2 className="section-title">Who Are the Silte People?</h2>
+              <h2 className="section-title">About Us</h2>
               <p className="paragraph">
-                The Silte people are an ethnic group native to the Silte Zone in the Southern Nations, 
-                Nationalities, and Peoples' Region (SNNPR) of Ethiopia. They are part of the larger 
-                Gurage cluster but maintain distinct cultural, linguistic, and historical identities.
-              </p>
-              
-              <div className="highlight-box">
-                <p className="highlight-text">
-                  The name "Silte" comes from the traditional administrative system where the community 
-                  was organized into seven clans or houses, each with its own unique role and responsibility.
-                </p>
-              </div>
-            </section>
-
-            {/* History */}
-            <section className="content-section">
-              <h2 className="section-title">Historical Background</h2>
-              
-              <div className="timeline">
-                <div className="timeline-item">
-                  <div className="timeline-year">Pre-19th Century</div>
-                  <div className="timeline-content">
-                    <h3 className="timeline-title">Early Settlement</h3>
-                    <p>
-                      The Silte people historically inhabited the fertile highlands of what is now 
-                      the Silte Zone, known for its agricultural productivity and strategic location 
-                      along trade routes.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="timeline-item">
-                  <div className="timeline-year">19th Century</div>
-                  <div className="timeline-content">
-                    <h3 className="timeline-title">Resistance and Autonomy</h3>
-                    <p>
-                      During the expansion of the Ethiopian Empire under Emperor Menelik II, 
-                      the Silte people fiercely defended their territory and autonomy, 
-                      maintaining much of their traditional governance structures.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="timeline-item">
-                  <div className="timeline-year">1974</div>
-                  <div className="timeline-content">
-                    <h3 className="timeline-title">Administrative Recognition</h3>
-                    <p>
-                      Following the Ethiopian Revolution, the Silte Zone was officially established 
-                      as part of administrative reforms that recognized ethnic and linguistic diversity.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="timeline-item">
-                  <div className="timeline-year">2001</div>
-                  <div className="timeline-content">
-                    <h3 className="timeline-title">Constitutional Recognition</h3>
-                    <p>
-                      The Silte people gained constitutional recognition as a distinct ethnic group, 
-                      separate from the larger Gurage classification, affirming their unique identity.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Culture */}
-            <section className="content-section">
-              <h2 className="section-title">Cultural Heritage</h2>
-              
-              <div className="culture-grid">
-                <div className="culture-card">
-                  <div className="culture-icon">🗣️</div>
-                  <h3 className="culture-title">Language</h3>
-                  <p className="culture-description">
-                    The Silte language (Silt'e) is part of the Semitic branch of Afro-Asiatic languages, 
-                    with unique phonological and grammatical features distinct from neighboring languages.
-                  </p>
-                </div>
-
-                <div className="culture-card">
-                  <div className="culture-icon">🎭</div>
-                  <h3 className="culture-title">Traditional Arts</h3>
-                  <p className="culture-description">
-                    Rich tradition of music, dance (like the "Shilta"), weaving, pottery, and 
-                    metalworking that reflect the community's creativity and craftsmanship.
-                  </p>
-                </div>
-
-                <div className="culture-card">
-                  <div className="culture-icon">🍲</div>
-                  <h3 className="culture-title">Cuisine</h3>
-                  <p className="culture-description">
-                    Known for dishes like "Kotcho" (false banana bread), "Kitfo" (minced raw meat), 
-                    and various fermented foods that are central to social gatherings.
-                  </p>
-                </div>
-
-                <div className="culture-card">
-                  <div className="culture-icon">🏛️</div>
-                  <h3 className="culture-title">Architecture</h3>
-                  <p className="culture-description">
-                    Traditional round houses (tukuls) with conical thatched roofs, and modern 
-                    adaptations that maintain cultural aesthetics while using contemporary materials.
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* Geography */}
-            <section className="content-section">
-              <h2 className="section-title">Geography & Demographics</h2>
-              
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-number">~1.2 Million</div>
-                  <div className="stat-label">Total Population</div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-number">9 Woredas</div>
-                  <div className="stat-label">Administrative Districts</div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-number">2,500 km²</div>
-                  <div className="stat-label">Total Area</div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-number">1,800-2,800m</div>
-                  <div className="stat-label">Elevation Range</div>
-                </div>
-              </div>
-
-              <p className="paragraph">
-                The Silte Zone is characterized by diverse topography including highland plateaus, 
-                valleys, and mountainous areas. The climate varies from temperate in the highlands 
-                to subtropical in lower elevations, supporting diverse agricultural activities.
+                The Silte Zone Government Communication Affairs Department plays a vital role in fostering
+                transparent and effective communication between the local government and the community. This
+                department ensures the public is well-informed about government policies, initiatives, and
+                activities, promoting transparency and accountability. Through various communication channels,
+                the department disseminates crucial information, updates, and announcements to the people,
+                helping them stay engaged with ongoing projects and decisions that impact their daily lives.
+                Additionally, the department works to strengthen public trust by addressing concerns, answering
+                inquiries, and providing accurate and timely information to foster a better understanding of
+                government operations. The Communication Affairs Department is committed to enhancing the flow
+                of information, building awareness, and supporting the government’s efforts to serve the needs
+                of the community more efficiently.
               </p>
             </section>
 
-            {/* Economy */}
+            {/* Vision */}
             <section className="content-section">
-              <h2 className="section-title">Economy & Livelihood</h2>
-              
-              <div className="economy-list">
-                <div className="economy-item">
-                  <h3 className="economy-title">Agriculture</h3>
-                  <p>
-                    Primary economic activity with cultivation of enset (false banana), coffee, 
-                    teff, maize, and various vegetables. Enset is particularly important as a 
-                    drought-resistant staple crop.
-                  </p>
-                </div>
+              <h2 className="section-title">Vision</h2>
+              <p className="paragraph">
+                In the year 2023, the people of our zone will see equality, unity and brotherhood confirmed
+                through their shared decision-making, which is rich in information.
+              </p>
+            </section>
 
-                <div className="economy-item">
-                  <h3 className="economy-title">Trade & Commerce</h3>
-                  <p>
-                    Strategic location along major transport routes has made Silte people 
-                    renowned traders, with significant diaspora communities involved in 
-                    national and international commerce.
-                  </p>
-                </div>
+            {/* Mission */}
+            <section className="content-section">
+              <h2 className="section-title">Mission</h2>
+              <p className="paragraph">
+                It is to provide access to reliable, high-quality information by establishing a communication
+                system that motivates, enhances and benefits the society for universal participation in zonal
+                and national issues.
+              </p>
+            </section>
 
-                <div className="economy-item">
-                  <h3 className="economy-title">Handicrafts</h3>
-                  <p>
-                    Traditional weaving (especially of cotton and wool), pottery, basketry, 
-                    and metalwork provide additional income and preserve cultural traditions.
-                  </p>
-                </div>
-              </div>
+            {/* Values */}
+            <section className="content-section">
+              <h2 className="section-title">Values</h2>
+              <ul className="economy-list">
+                <li className="economy-item">Providing better service</li>
+                <li className="economy-item">Develop the ability to be creative and creative</li>
+                <li className="economy-item">Respect and unity</li>
+                <li className="economy-item">Believing in the victory of ideas</li>
+                <li className="economy-item">Cooperation and teamwork</li>
+                <li className="economy-item">Leadership skills</li>
+                <li className="economy-item">Management and taking responsibility</li>
+              </ul>
             </section>
           </div>
 

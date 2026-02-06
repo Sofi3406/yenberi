@@ -39,7 +39,8 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
   // Landing page should show only home content (no header/footer)
   const isLandingPage = pathname === '/';
   const isAuthRoute = pathname.startsWith('/auth');
-  const shouldShowHeaderFooter = isAuthenticated && !isLandingPage && !isAuthRoute;
+  const shouldShowHeader = !isLandingPage && !isAuthRoute;
+  const shouldShowFooter = isAuthenticated && !isLandingPage && !isAuthRoute;
 
   if (isLoading) {
     return (
@@ -51,9 +52,12 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
   return (
     <>
-      {shouldShowHeaderFooter && <Header />}
+      {isLandingPage && (
+        <div className="landing-banner" role="img" aria-label="Header Banner"></div>
+      )}
+      {shouldShowHeader && <Header />}
       <main>{children}</main>
-      {shouldShowHeaderFooter && <Footer />}
+      {shouldShowFooter && <Footer />}
     </>
   );
 }
