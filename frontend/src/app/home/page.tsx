@@ -120,6 +120,47 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* About Silte + SLMA Highlights */}
+      <section className="landing-about-section">
+        <div className="container">
+          <div className="about-summaries">
+            <div className="about-card">
+              <div className="about-card-header">
+                <p className="about-kicker">About Silte</p>
+                <h2 className="about-title">Silte Zone Communication Affairs</h2>
+                <p className="about-summary">
+                  Strengthening transparency and public trust through reliable, timely information
+                  and community engagement across the Silte Zone.
+                </p>
+              </div>
+              <ul className="about-points">
+                <li>Vision: unity and shared decision-making through access to information.</li>
+                <li>Mission: motivate participation in zonal and national issues.</li>
+                <li>Values: service, respect, teamwork, and leadership.</li>
+              </ul>
+              <Link href="/auth/register" className="about-link">Join SLMA</Link>
+            </div>
+
+            <div className="about-card">
+              <div className="about-card-header">
+                <p className="about-kicker">About SLMA</p>
+                <h2 className="about-title">Silte Lmat Mehber (SLMA)</h2>
+                <p className="about-summary">
+                  Uniting diaspora and local communities to preserve heritage while advancing
+                  education, healthcare, and economic opportunity.
+                </p>
+              </div>
+              <ul className="about-points">
+                <li>Mission: sustainable community development rooted in culture.</li>
+                <li>Vision: a prosperous, educated, and culturally vibrant Silte community.</li>
+                <li>Impact: hospitals, schools, and infrastructure across the zone.</li>
+              </ul>
+              <Link href="/auth/register" className="about-link">Join SLMA</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="stats-section">
         <div className="container">
@@ -154,14 +195,9 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Why Join SLMA */}
-      <section className="activities-section">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="section-title">Why Join SLMA?</h2>
+          <div className="text-center mb-8 mt-12">
+            <h3 className="section-title">Membership Benefits</h3>
             <p className="section-description">
               Your membership supports our community's growth and gives you access to exclusive benefits
             </p>
