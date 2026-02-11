@@ -501,7 +501,7 @@ export default function EditEventPage() {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               {imagePreview ? (
                 <div className="space-y-4">
-                  <img src={imagePreview} alt="Preview" className="mx-auto max-h-64 rounded-lg" />
+                  <img src={imagePreview} alt="Preview" className="slma-event-thumb object-cover rounded-lg mx-auto" />
                   <button
                     type="button"
                     onClick={() => {

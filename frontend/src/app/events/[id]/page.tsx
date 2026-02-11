@@ -61,7 +61,7 @@ export default function EventDetailPage() {
 
         <div className="flex flex-col md:flex-row gap-6">
           {event.image && (
-            <img src={event.image} alt={event.title} className="w-full md:w-1/3 h-56 object-cover rounded" />
+            <img src={event.image} alt={event.title} className="slma-event-thumb object-cover rounded" />
           )}
 
           <div className="flex-1">

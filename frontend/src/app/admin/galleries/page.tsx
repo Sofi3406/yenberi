@@ -220,9 +220,9 @@ export default function AdminGalleriesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         {item.image ? (
-                          <img src={item.image} alt={item.title} className="w-10 h-10 rounded-lg object-cover mr-3" />
+                          <img src={item.image} alt={item.title} className="slma-media-thumb rounded-lg object-cover mr-3" />
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-gray-200 mr-3" />
+                          <div className="slma-media-thumb rounded-lg bg-gray-200 mr-3" />
                         )}
                         <div>
                           <div className="text-sm font-medium text-gray-900">{item.title}</div>

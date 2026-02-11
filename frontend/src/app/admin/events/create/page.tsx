@@ -476,7 +476,7 @@ export default function CreateEventPage() {
                       <img
                         src={imagePreview}
                         alt="Preview"
-                        className="w-full h-48 object-cover rounded-lg mx-auto"
+                        className="slma-event-thumb object-cover rounded-lg mx-auto"
                       />
                       <button
                         type="button"

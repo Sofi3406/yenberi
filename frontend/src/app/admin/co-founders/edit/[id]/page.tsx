@@ -266,7 +266,7 @@ export default function EditCoFounderPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Image</h2>
             <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6">
               {imagePreview ? (
-                <img src={imagePreview} alt="Preview" className="w-32 h-32 rounded-full object-cover" />
+                <img src={imagePreview} alt="Preview" className="slma-event-thumb rounded-full object-cover" />
               ) : (
                 <div className="text-center">
                   <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />

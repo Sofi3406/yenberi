@@ -199,6 +199,27 @@ p {
 .bg-gray-50 { background-color: var(--gray-50); }
 .bg-gray-100 { background-color: var(--gray-100); }
 
+/* Image sizing utilities for admin/user views */
+.slma-avatar-xs {
+  width: 48px;
+  height: 48px;
+}
+
+.slma-doc-thumb {
+  width: 48px;
+  height: 48px;
+}
+
+.slma-event-thumb {
+  width: 96px;
+  height: 96px;
+}
+
+.slma-media-thumb {
+  width: 64px;
+  height: 64px;
+}
+
 /* Border Radius */
 .rounded { border-radius: 6px; }
 .rounded-lg { border-radius: 8px; }
@@ -9209,8 +9230,8 @@ pre {
 }
 
 .receipt-file-preview {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
   overflow: hidden;
   margin-right: 16px;
@@ -17224,8 +17245,8 @@ html {
 }
 
 .receipt-file-preview {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   border-radius: 10px;
   overflow: hidden;

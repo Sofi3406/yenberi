@@ -197,9 +197,9 @@ export default function AdminCoFoundersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-full object-cover mr-3" />
+                          <img src={item.image} alt={item.name} className="slma-media-thumb rounded-full object-cover mr-3" />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
+                          <div className="slma-media-thumb rounded-full bg-gray-200 mr-3" />
                         )}
                         <div>
                           <div className="text-sm font-medium text-gray-900">{item.name}</div>

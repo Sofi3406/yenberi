@@ -47,6 +47,20 @@ export default function EditProfilePage() {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
+  const buildUploadUrl = (value?: string | null) => {
+    if (!value) return null;
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    const normalized = value.replace(/\\/g, '/');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+    if (normalized.includes('/uploads/')) {
+      const idx = normalized.indexOf('/uploads/');
+      return `${baseUrl}${normalized.slice(idx)}`;
+    }
+    if (normalized.startsWith('uploads/')) return `${baseUrl}/${normalized}`;
+    if (normalized.startsWith('/uploads/')) return `${baseUrl}${normalized}`;
+    return `${baseUrl}/uploads/${normalized}`;
+  };
+
   useEffect(() => {
     if (!authService.isAuthenticated()) {
       router.push('/auth/login');
@@ -78,8 +92,7 @@ export default function EditProfilePage() {
           },
         });
         if (u.profile?.photo) {
-          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
-          setProfileImagePreview(`${baseUrl}/uploads/${u.profile.photo}`);
+          setProfileImagePreview(buildUploadUrl(u.profile.photo));
         }
       } catch (err: any) {
         toast.error(err.response?.data?.message || err.message || 'Failed to load profile');
@@ -183,10 +196,10 @@ export default function EditProfilePage() {
                 <img
                   src={profileImagePreview}
                   alt="Profile preview"
-                  className="h-20 w-20 rounded-full object-cover border"
+                  className="slma-avatar-xs rounded-full object-cover border-2 border-gray-200"
                 />
               ) : (
-                <div className="h-20 w-20 rounded-full bg-gray-100 border flex items-center justify-center text-gray-400">
+                <div className="slma-avatar-xs rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-gray-400">
                   N/A
                 </div>
               )}

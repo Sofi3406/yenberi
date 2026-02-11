@@ -21,6 +21,19 @@ import { toast } from 'react-hot-toast';
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
 
+const buildUploadUrl = (value?: string | null) => {
+  if (!value) return null;
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  const normalized = value.replace(/\\/g, '/');
+  if (normalized.includes('/uploads/')) {
+    const idx = normalized.indexOf('/uploads/');
+    return `${BASE_URL}${normalized.slice(idx)}`;
+  }
+  if (normalized.startsWith('uploads/')) return `${BASE_URL}/${normalized}`;
+  if (normalized.startsWith('/uploads/')) return `${BASE_URL}${normalized}`;
+  return `${BASE_URL}/uploads/${normalized}`;
+};
+
 export default function AdminUserDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -60,20 +73,19 @@ export default function AdminUserDetailPage() {
   };
 
   const getProfileImageUrl = () => {
-    if (!user?.profile?.photo) return null;
-    const photo = user.profile.photo;
-    if (photo.startsWith('http')) return photo;
-    if (photo.startsWith('registration/') || photo.startsWith('profile-images/')) {
-      return `${BASE_URL}/uploads/${photo}`;
-    }
-    return `${BASE_URL}/uploads/registration/${photo}`;
+    return buildUploadUrl(user?.profile?.photo);
+  };
+
+  const getFirstName = () => {
+    const rawName = (user?.name || '').trim();
+    if (!rawName) return '—';
+    return rawName.split(' ')[0];
   };
 
   const getNationalIdUrl = () => {
     const nid = user?.nationalId;
-    if (!nid?.filename) return null;
-    // National ID is saved in registration folder during signup
-    return `${BASE_URL}/uploads/registration/${nid.filename}`;
+    if (!nid?.filename && !nid?.path) return null;
+    return buildUploadUrl(nid.path || `registration/${nid.filename}`);
   };
 
   const getReceiptUrl = () => {
@@ -109,7 +121,7 @@ export default function AdminUserDetailPage() {
         <div className="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-4 border-white/40">
+              <div className="slma-avatar-xs rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-4 border-white/40">
                 {getProfileImageUrl() ? (
                   <img src={getProfileImageUrl()!} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
@@ -151,6 +163,10 @@ export default function AdminUserDetailPage() {
               Personal Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm">First Name</span>
+                <p className="font-medium">{getFirstName()}</p>
+              </div>
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                 <Mail className="w-5 h-5 text-gray-500" />
                 <div>
@@ -219,7 +235,7 @@ export default function AdminUserDetailPage() {
                       <img
                         src={getNationalIdUrl()!}
                         alt="National ID"
-                        className="max-h-24 max-w-[180px] rounded border object-contain"
+                        className="slma-doc-thumb rounded border object-contain"
                       />
                     </div>
                   )}
@@ -240,7 +256,7 @@ export default function AdminUserDetailPage() {
                 <img
                   src={getProfileImageUrl()!}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
+                  className="slma-avatar-xs rounded-full object-cover border-2 border-gray-200"
                 />
               ) : (
                 <p className="text-gray-500">No profile photo</p>
