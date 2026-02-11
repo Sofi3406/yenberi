@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 /* Reset and base styles */
 * {
   margin: 0;
@@ -218,6 +220,133 @@ p {
 .slma-media-thumb {
   width: 64px;
   height: 64px;
+}
+
+/* Admin dashboard styling */
+.admin-dashboard {
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg, #fef9f2 0%, #f6f2e8 100%);
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.12), transparent 38%),
+    radial-gradient(circle at 90% 5%, rgba(245, 158, 11, 0.12), transparent 35%);
+}
+
+.admin-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #e0f2fe 0%, #f8fafc 55%, #e2e8f0 110%);
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-hero::before,
+.admin-hero::after {
+  content: '';
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, transparent 70%);
+  filter: blur(2px);
+  opacity: 0.7;
+}
+
+.admin-hero::before {
+  top: -120px;
+  left: -80px;
+}
+
+.admin-hero::after {
+  bottom: -140px;
+  right: -80px;
+}
+
+.admin-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-title {
+  font-family: 'Fraunces', 'Times New Roman', serif;
+  letter-spacing: 0.3px;
+}
+
+.admin-subtitle {
+  color: #475569;
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #0f172a;
+  font-size: 0.85rem;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.admin-ghost-button:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.admin-stat-card,
+.admin-action-card {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e7dfd3;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-stat-card:hover,
+.admin-action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.admin-action-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(16, 185, 129, 0.08), rgba(234, 179, 8, 0.08));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.admin-action-card:hover::before {
+  opacity: 1;
+}
+
+.admin-reveal {
+  animation: adminFadeIn 0.6s ease both;
+}
+
+@keyframes adminFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Border Radius */
@@ -12700,10 +12829,10 @@ html {
 }
 
 .header-logo {
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 5rem;
+  height: 5rem;
   background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
-  border-radius: 16px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12725,7 +12854,7 @@ html {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 18px;
+  border-radius: 50%;
   display: block;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -12747,7 +12876,7 @@ html {
 }
 
 .site-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
@@ -12766,6 +12895,23 @@ html {
   font-weight: 500;
   letter-spacing: 0.025em;
   transition: color 0.3s ease;
+}
+
+.site-kicker {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: #64748b;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.site-tagline {
+  font-size: 0.75rem;
+  color: #475569;
+  margin: 0.15rem 0 0;
+  font-weight: 500;
 }
 
 .header-logo-link:hover .site-title {

@@ -107,6 +107,7 @@ export default function AdminDashboardPage() {
       title: 'Manage Users',
       description: 'View, verify, and manage all users',
       icon: <Users className="w-8 h-8" />,
+      miniIcon: Users,
       href: '/admin/users',
       color: 'bg-blue-500',
       count: stats?.totalUsers || 0
@@ -115,6 +116,7 @@ export default function AdminDashboardPage() {
       title: 'Verify Payments',
       description: 'Review and verify payment receipts',
       icon: <DollarSign className="w-8 h-8" />,
+      miniIcon: DollarSign,
       href: '/admin/payments',
       color: 'bg-green-500',
       count: stats?.pendingPayments || 0,
@@ -124,6 +126,7 @@ export default function AdminDashboardPage() {
       title: 'Verify Donations',
       description: 'Review donation payment receipts',
       icon: <FileText className="w-8 h-8" />,
+      miniIcon: FileText,
       href: '/admin/donations',
       color: 'bg-teal-500',
       count: stats?.pendingDonationReceipts || 0,
@@ -133,14 +136,16 @@ export default function AdminDashboardPage() {
       title: 'Manage Events',
       description: 'Create and manage community events',
       icon: <Calendar className="w-8 h-8" />,
+      miniIcon: Calendar,
       href: '/admin/events',
-      color: 'bg-purple-500',
+      color: 'bg-amber-500',
       count: stats?.totalEvents || 0
     },
     {
       title: 'Manage Projects',
       description: 'Create and manage community projects',
       icon: <FolderKanban className="w-8 h-8" />,
+      miniIcon: FolderKanban,
       href: '/admin/projects',
       color: 'bg-emerald-500'
     },
@@ -148,6 +153,7 @@ export default function AdminDashboardPage() {
       title: 'Manage Galleries',
       description: 'Upload and manage gallery items',
       icon: <Image className="w-8 h-8" />,
+      miniIcon: Image,
       href: '/admin/galleries',
       color: 'bg-rose-500'
     },
@@ -155,6 +161,7 @@ export default function AdminDashboardPage() {
       title: 'Manage Co-Founders',
       description: 'Add and update co-founder profiles',
       icon: <Users2 className="w-8 h-8" />,
+      miniIcon: Users2,
       href: '/admin/co-founders',
       color: 'bg-sky-500'
     },
@@ -162,6 +169,7 @@ export default function AdminDashboardPage() {
       title: 'User Verifications',
       description: 'Accept and verify new user registrations',
       icon: <UserCheck className="w-8 h-8" />,
+      miniIcon: UserCheck,
       href: '/admin/users?tab=verifications',
       color: 'bg-orange-500',
       count: stats?.pendingVerifications || 0,
@@ -171,6 +179,7 @@ export default function AdminDashboardPage() {
       title: 'Notifications',
       description: 'Payment reminders and events',
       icon: <Bell className="w-8 h-8" />,
+      miniIcon: Bell,
       href: '/notifications',
       color: 'bg-teal-500'
     }
@@ -209,7 +218,7 @@ export default function AdminDashboardPage() {
       label: 'Verified Payments',
       value: stats?.verifiedPayments || 0,
       icon: <DollarSign className="w-6 h-6" />,
-      color: 'text-purple-600 bg-purple-100',
+      color: 'text-amber-700 bg-amber-100',
       change: '+8%'
     },
     {
@@ -226,37 +235,30 @@ export default function AdminDashboardPage() {
       color: 'text-red-600 bg-red-100',
       change: stats?.pendingVerifications > 0 ? 'Review needed' : 'All clear'
     },
-    {
-      label: 'Rejected Donations',
-      value: stats?.rejectedDonationReceipts || 0,
-      icon: <XCircle className="w-6 h-6" />,
-      color: 'text-rose-600 bg-rose-100',
-      change: stats?.rejectedDonationReceipts > 0 ? 'Follow up' : 'All clear'
-    }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="admin-dashboard min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+      <div className="admin-hero">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 admin-hero-inner">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-600">
+              <span className="admin-chip">
+                <Shield className="w-4 h-4" />
+                Admin Access
+              </span>
+              <h1 className="admin-title text-3xl md:text-4xl mt-3">Admin Dashboard</h1>
+              <p className="admin-subtitle mt-2 text-sm md:text-base">
                 Welcome back, {user.name} • {user.role === 'super_admin' ? 'Super Admin' : 'Woreda Admin'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/profile/edit"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
+            <div className="flex items-center gap-3">
+              <Link href="/profile/edit" className="admin-ghost-button">
                 <Settings className="w-4 h-4" />
                 Edit Profile
               </Link>
-              <Shield className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium text-gray-700">Admin Access</span>
+              <span className="admin-chip">Status: Active</span>
             </div>
           </div>
         </div>
@@ -266,7 +268,11 @@ export default function AdminDashboardPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {statCards.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm border p-6">
+            <div
+              key={index}
+              className="admin-stat-card p-6 admin-reveal"
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.label}</p>
@@ -289,9 +295,17 @@ export default function AdminDashboardPage() {
               <Link
                 key={index}
                 href={action.href}
-                className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow group"
+                className="admin-action-card p-6 group admin-reveal"
+                style={{ animationDelay: `${index * 70}ms` }}
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex justify-end mb-3 relative z-10">
+                  {action.miniIcon && (
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-500">
+                      <action.miniIcon className="w-4 h-4 text-slate-700" />
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-start justify-between mb-4 relative z-10">
                   <div className={`p-3 rounded-lg ${action.color} text-white group-hover:scale-110 transition-transform`}>
                     {action.icon}
                   </div>
@@ -301,9 +315,11 @@ export default function AdminDashboardPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{action.title}</h3>
-                <p className="text-sm text-gray-600 mb-3">{action.description}</p>
-                <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 relative z-10">
+                  {action.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3 relative z-10">{action.description}</p>
+                <div className="flex items-center justify-between relative z-10">
                   <span className="text-2xl font-bold text-gray-900">{action.count}</span>
                   <span className="text-sm text-gray-400 group-hover:text-gray-600">View →</span>
                 </div>

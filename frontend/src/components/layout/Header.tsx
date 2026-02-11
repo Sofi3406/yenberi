@@ -48,8 +48,9 @@ const Header = () => {
             />
           </div>
           <div className="header-logo-text">
+            <span className="site-kicker">SLMA Logo</span>
             <h1 className="site-title">Silte Lmat Mehber</h1>
-            <p className="site-subtitle">{t('hero.subtitle')}</p>
+            <p className="site-tagline">Preserving heritage, building community,</p>
           </div>
         </Link>
 
