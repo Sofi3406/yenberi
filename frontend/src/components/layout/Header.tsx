@@ -35,6 +35,10 @@ const Header = () => {
     { code: 'silt', label: 'ስል' },
   ];
 
+  const handleLogout = () => {
+    authService.logout();
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -88,6 +92,9 @@ const Header = () => {
               <button className="user-btn">
                 <span>👤</span>
                 <span>{user.name.split(' ')[0]}</span>
+              </button>
+              <button className="btn btn-outline" onClick={handleLogout}>
+                Logout
               </button>
             </div>
           ) : (
@@ -143,6 +150,19 @@ const Header = () => {
                 >
                   {t('nav.register')}
                 </Link>
+              </div>
+            )}
+            {user && (
+              <div className="mobile-auth-buttons">
+                <button
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  Logout
+                </button>
               </div>
             )}
           </div>
