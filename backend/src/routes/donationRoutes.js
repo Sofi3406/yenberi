@@ -4,6 +4,7 @@ import {
   uploadReceipt,
   getDonation,
   getAllDonations,
+  getMyDonations,
   verifyDonation,
   getDonationStats
 } from '../controllers/donationController.js';
@@ -15,6 +16,10 @@ const router = express.Router();
 // Public routes
 router.post('/', createDonation);
 router.post('/:id/receipt', uploadMiddleware, uploadReceipt);
+// Protected user routes
+router.get('/my', protect, getMyDonations);
+
+// Public lookup
 router.get('/:identifier', getDonation);
 
 // Protected admin routes

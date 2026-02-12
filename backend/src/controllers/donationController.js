@@ -295,6 +295,28 @@ export const getDonation = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get donations for the current user
+// @route   GET /api/donations/my
+// @access  Private
+export const getMyDonations = asyncHandler(async (req, res) => {
+  try {
+    const donations = await Donation.find({ 'donor.userId': req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      donations
+    });
+  } catch (error) {
+    console.error('Get my donations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching donations',
+      error: error.message
+    });
+  }
+});
+
 // @desc    Get all donations (with filters)
 // @route   GET /api/donations
 // @access  Private (Admin only)
