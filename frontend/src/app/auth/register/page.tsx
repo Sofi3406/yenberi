@@ -549,7 +549,7 @@ const RegistrationForm = () => {
             {/* Name field */}
             <div className="form-group">
               <label htmlFor="name" className="form-label">
-                Full Name *
+                First Name *
               </label>
               <input
                 type="text"

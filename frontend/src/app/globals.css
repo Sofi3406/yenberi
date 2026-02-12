@@ -13244,6 +13244,14 @@ html {
 
 /* Responsive Design for Header Only */
 @media (max-width: 1024px) {
+  .header {
+    overflow: visible;
+  }
+
+  .mobile-menu {
+    z-index: 1001;
+  }
+
   .desktop-nav {
     display: none;
   }
