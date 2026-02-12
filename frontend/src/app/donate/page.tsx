@@ -200,10 +200,12 @@ export default function DonatePage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
+    const isCheckbox = e.target instanceof HTMLInputElement && e.target.type === 'checkbox';
+    const nextValue = isCheckbox ? e.target.checked : value;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: nextValue
     }));
   };
 
