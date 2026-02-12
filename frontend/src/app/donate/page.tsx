@@ -36,7 +36,7 @@ import api from '@/services/api';
 import { fetchProjects } from '@/lib/projectsApi';
 
 export default function DonatePage() {
-  const donorInfoRef = useRef(null);
+  const donorInfoRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
