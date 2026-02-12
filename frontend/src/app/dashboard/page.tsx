@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { authService } from '@/services/authService';
+import { authService, type User } from '@/services/authService';
 import api from '@/services/api';
 import { activitiesApi } from '@/services/activitiesApi';
 import ActivityFeed from '@/components/features/activity/ActivityFeed';
@@ -44,7 +44,7 @@ const formatCurrency = (amount: number) => {
 export default function DashboardPage() {
   const { t, language } = useLanguage();
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<{ eventsAttended: number; totalDonations: number; totalMembers: number; communityEngagement: number } | null>(null);
   const [recentActivities, setRecentActivities] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
