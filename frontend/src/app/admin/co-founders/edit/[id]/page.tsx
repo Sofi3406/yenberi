@@ -17,7 +17,7 @@ const coFounderSchema = z.object({
   background: z.string().optional(),
   slmaContribution: z.string().optional(),
   funFact: z.string().optional(),
-  availability: z.enum(['available', 'busy', 'in-meeting', 'traveling']).default('available')
+  availability: z.enum(['available', 'busy', 'in-meeting', 'traveling']).optional()
 });
 
 type CoFounderFormData = z.infer<typeof coFounderSchema>;
