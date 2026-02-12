@@ -37,6 +37,12 @@ export interface User {
   email: string;
   role: 'member' | 'woreda_admin' | 'super_admin';
   membershipPlan?: 'basic' | 'active' | 'premium' | string;
+  payment?: {
+    amount: number;
+    status?: 'pending' | 'verified' | 'rejected';
+  };
+  createdAt?: string;
+  woreda?: string;
   membership: {
     membershipId: string;
     status: 'active' | 'expired' | 'pending' | 'cancelled';
