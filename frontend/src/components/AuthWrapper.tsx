@@ -15,8 +15,12 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     // Check if user is authenticated
+    const token = authService.getToken();
     const user = authService.getCurrentUser();
-    setIsAuthenticated(!!user);
+    if (!token && user) {
+      localStorage.removeItem('slma_user');
+    }
+    setIsAuthenticated(!!token);
     setIsLoading(false);
   }, [pathname]); // Re-check on route change
 
