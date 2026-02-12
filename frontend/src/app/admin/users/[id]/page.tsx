@@ -219,10 +219,17 @@ export default function AdminUserDetailPage() {
               National ID Document
             </h2>
             <div className="border rounded-lg p-4 bg-gray-50">
-              {getNationalIdUrl() ? (
-                <div>
-                  <a
-                    href={getNationalIdUrl()}
+              {(() => {
+                const nationalIdUrl = getNationalIdUrl() ?? undefined;
+
+                if (!nationalIdUrl) {
+                  return <p className="text-gray-500">No National ID uploaded</p>;
+                }
+
+                return (
+                  <div>
+                    <a
+                      href={nationalIdUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-green-600 hover:text-green-800 font-medium"
@@ -233,16 +240,15 @@ export default function AdminUserDetailPage() {
                   {user.nationalId?.mimetype?.startsWith('image/') && (
                     <div className="mt-2">
                       <img
-                        src={getNationalIdUrl()!}
+                        src={nationalIdUrl}
                         alt="National ID"
                         className="slma-doc-thumb rounded border object-contain"
                       />
                     </div>
                   )}
-                </div>
-              ) : (
-                <p className="text-gray-500">No National ID uploaded</p>
-              )}
+                  </div>
+                );
+              })()}
             </div>
           </section>
 
