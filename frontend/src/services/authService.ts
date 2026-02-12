@@ -36,6 +36,7 @@ export interface User {
   fatherName?: string;
   email: string;
   role: 'member' | 'woreda_admin' | 'super_admin';
+  membershipPlan?: 'basic' | 'active' | 'premium' | string;
   membership: {
     membershipId: string;
     status: 'active' | 'expired' | 'pending' | 'cancelled';
