@@ -274,7 +274,7 @@ export default function DonatePage() {
     }
   };
 
-  const uploadReceipt = async (donationId) => {
+  const uploadReceipt = async (donationId: string) => {
     if (!receiptFile) {
       throw new Error('Please select a receipt file');
     }
