@@ -45,7 +45,32 @@ const userSchema = new mongoose.Schema(
     woreda: {
       type: String,
       required: [true, 'Woreda is required'],
-      enum: ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'],
+      enum: [
+        'worabe',
+        'hulbarag',
+        'sankura',
+        'alicho',
+        'silti',
+        'dalocha',
+        'lanforo',
+        'east-azernet-berbere',
+        'west-azernet-berbere',
+        'worabe-city-administration',
+        'alem-gebeya-city-administration',
+        'qbet-city-administration',
+        'tora-city-administration',
+        'dalocha-city-administration',
+        'silti-woreda',
+        'misraq-silti-woreda',
+        'lanfro-woreda',
+        'mitto-woreda',
+        'dalocha-woreda',
+        'sankura-woreda',
+        'wulbarag-woreda',
+        'mirab-azernet-berbere-woreda',
+        'misraq-azernet-berbere-woreda',
+        'alicho-woriro-woreda'
+      ],
       default: 'worabe',
     },
     // UPDATED: Added membershipPlan field
@@ -172,7 +197,32 @@ const userSchema = new mongoose.Schema(
 
 // Pre-save middleware to fix woreda and set payment info
 userSchema.pre('save', function(next) {
-  const validWoredas = ['worabe', 'hulbarag', 'sankura', 'alicho', 'silti', 'dalocha', 'lanforo', 'east-azernet-berbere', 'west-azernet-berbere'];
+  const validWoredas = [
+    'worabe',
+    'hulbarag',
+    'sankura',
+    'alicho',
+    'silti',
+    'dalocha',
+    'lanforo',
+    'east-azernet-berbere',
+    'west-azernet-berbere',
+    'worabe-city-administration',
+    'alem-gebeya-city-administration',
+    'qbet-city-administration',
+    'tora-city-administration',
+    'dalocha-city-administration',
+    'silti-woreda',
+    'misraq-silti-woreda',
+    'lanfro-woreda',
+    'mitto-woreda',
+    'dalocha-woreda',
+    'sankura-woreda',
+    'wulbarag-woreda',
+    'mirab-azernet-berbere-woreda',
+    'misraq-azernet-berbere-woreda',
+    'alicho-woriro-woreda'
+  ];
   
   // Fix woreda if empty or invalid
   if (!this.woreda || this.woreda.trim() === '' || !validWoredas.includes(this.woreda)) {

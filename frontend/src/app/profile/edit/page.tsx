@@ -9,15 +9,21 @@ import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 
 const woredas = [
-  { id: 'worabe', name: 'Worabe' },
-  { id: 'hulbarag', name: 'Hulbarag' },
-  { id: 'sankura', name: 'Sankura' },
-  { id: 'alicho', name: 'Alicho' },
-  { id: 'silti', name: 'Silti' },
-  { id: 'dalocha', name: 'Dalocha' },
-  { id: 'lanforo', name: 'Lanforo' },
-  { id: 'east-azernet-berbere', name: 'East Azernet Berbere' },
-  { id: 'west-azernet-berbere', name: 'West Azernet Berbere' },
+  { id: 'worabe-city-administration', name: 'Worabe city administration' },
+  { id: 'alem-gebeya-city-administration', name: 'Alem Gebeya city administration' },
+  { id: 'qbet-city-administration', name: 'Qbet city administration' },
+  { id: 'tora-city-administration', name: 'Tora city administration' },
+  { id: 'dalocha-city-administration', name: 'Dalocha city administration' },
+  { id: 'silti-woreda', name: 'Silti woreda' },
+  { id: 'misraq-silti-woreda', name: 'Misraq Silti woreda' },
+  { id: 'lanfro-woreda', name: 'Lanfro woreda' },
+  { id: 'mitto-woreda', name: 'Mitto woreda' },
+  { id: 'dalocha-woreda', name: 'Dalocha woreda' },
+  { id: 'sankura-woreda', name: 'Sankura woreda' },
+  { id: 'wulbarag-woreda', name: 'Wulbarag woreda' },
+  { id: 'mirab-azernet-berbere-woreda', name: 'Mirab Azernet Berbere woreda' },
+  { id: 'misraq-azernet-berbere-woreda', name: 'Misraq Azernet Berbere woreda' },
+  { id: 'alicho-woriro-woreda', name: 'Alicho Woriro woreda' },
 ];
 
 const professions = [
