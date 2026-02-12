@@ -52,7 +52,7 @@ export default function DonatePage() {
     anonymous: false
   });
   const [showPaymentInstructions, setShowPaymentInstructions] = useState(false);
-  const [currentDonation, setCurrentDonation] = useState(null);
+  const [currentDonation, setCurrentDonation] = useState<{ id: string; transactionId?: string; amount?: number } | null>(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
