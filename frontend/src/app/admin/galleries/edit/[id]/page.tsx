@@ -51,7 +51,7 @@ export default function EditGalleryPage() {
       try {
         setLoadingItem(true);
         const token = authService.getToken();
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
         const res = await fetch(`${API_BASE}/galleries/admin/${galleryId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -116,7 +116,7 @@ export default function EditGalleryPage() {
         return;
       }
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/galleries/${galleryId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },

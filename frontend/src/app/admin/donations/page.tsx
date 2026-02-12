@@ -55,7 +55,7 @@ export default function AdminDonationsPage() {
 
   const getReceiptUrl = (donation: DonationItem) => {
     if (!donation.receipt?.filename) return null;
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api').replace(/\/api\/?$/, '');
     return `${baseUrl}/uploads/donation-receipts/${donation.receipt.filename}`;
   };
 

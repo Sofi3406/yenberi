@@ -85,7 +85,7 @@ export default function DocumentsPage() {
   };
 
   const getDownloadUrl = (doc: DocumentInfo) => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
     const base = API_BASE.replace(/\/api\/?$/, '');
     const file = getFileName(doc.filePath) || getFileName(doc.filename);
     if (!file) return undefined;

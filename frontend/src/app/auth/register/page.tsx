@@ -328,7 +328,7 @@ const RegistrationForm = () => {
       if (profileImageFile) formDataToSend.append('profileImage', profileImageFile);
       if (receiptFile) formDataToSend.append('receipt', receiptFile);
       
-      const API_URL = 'http://localhost:5000';
+      const API_URL = 'https://slma.onrender.com';
       const endpoint = `${API_URL}/api/auth/register`;
       
       console.log('Sending registration request...');
@@ -434,7 +434,7 @@ const RegistrationForm = () => {
       if (error.message.includes('Failed to fetch')) {
         setSubmitError(
           'Cannot connect to server. Please check:\n' +
-          '1. Backend server is running on http://localhost:5000\n' +
+          '1. Backend server is running on https://slma.onrender.com\n' +
           '2. No firewall blocking the connection\n' +
           '3. Run: node server.js in your backend folder'
         );
@@ -454,7 +454,7 @@ const RegistrationForm = () => {
         setSubmitError(
           `API endpoint not found.\n` +
           `Make sure your backend has route: POST /api/auth/register\n` +
-          `Current URL: http://localhost:5000/api/auth/register`
+          `Current URL: https://slma.onrender.com/api/auth/register`
         );
       } else {
         setSubmitError(error.message || 'Registration failed. Please try again.');
@@ -535,7 +535,7 @@ const RegistrationForm = () => {
                 <li>
                   Test with curl:
                   <pre>
-                    {`curl -X POST http://localhost:5000/api/auth/register \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"Test","email":"test@test.com","password":"Password123","phone":"+251911223344","woreda":"worabe","membershipPlan":"active","language":"en"}'`}
+                    {`curl -X POST https://slma.onrender.com/api/auth/register \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"Test","email":"test@test.com","password":"Password123","phone":"+251911223344","woreda":"worabe","membershipPlan":"active","language":"en"}'`}
                   </pre>
                 </li>
               </ol>

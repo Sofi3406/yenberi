@@ -67,7 +67,7 @@ export default function DonatePage() {
   const [featuredError, setFeaturedError] = useState('');
 
   // API Base URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
 
   const donationMethods = [
     {
@@ -516,7 +516,7 @@ export default function DonatePage() {
 
   const getReceiptUrl = (donation) => {
     if (!donation?.receipt?.filename) return null;
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api').replace(/\/api\/?$/, '');
     return `${baseUrl}/uploads/donation-receipts/${donation.receipt.filename}`;
   };
 

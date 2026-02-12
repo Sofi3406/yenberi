@@ -55,7 +55,7 @@ export default function EditCoFounderPage() {
       try {
         setLoadingItem(true);
         const token = authService.getToken();
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
         const res = await fetch(`${API_BASE}/co-founders/admin/${coFounderId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -124,7 +124,7 @@ export default function EditCoFounderPage() {
         return;
       }
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/co-founders/${coFounderId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },

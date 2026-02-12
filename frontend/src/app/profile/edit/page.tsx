@@ -57,7 +57,7 @@ export default function EditProfilePage() {
     if (!value) return null;
     if (value.startsWith('http://') || value.startsWith('https://')) return value;
     const normalized = value.replace(/\\/g, '/');
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api').replace(/\/api\/?$/, '');
     if (normalized.includes('/uploads/')) {
       const idx = normalized.indexOf('/uploads/');
       return `${baseUrl}${normalized.slice(idx)}`;

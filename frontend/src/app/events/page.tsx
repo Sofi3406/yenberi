@@ -109,7 +109,7 @@ export default function EventsPage() {
       if (activeFilter !== 'all') params.append('category', activeFilter);
       if (searchQuery) params.append('search', searchQuery);
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/events?${params.toString()}`);
 
       if (!response.ok) throw new Error('Failed to fetch events');
@@ -128,7 +128,7 @@ export default function EventsPage() {
 
   const fetchUpcomingEvents = async () => {
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/events/upcoming/events`);
 
       if (!response.ok) throw new Error('Failed');

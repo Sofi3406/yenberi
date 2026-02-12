@@ -30,7 +30,7 @@ export default function AdminCoFoundersPage() {
     try {
       setLoading(true);
       const token = authService.getToken();
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       let url = `${API_BASE}/co-founders/admin/all?page=${currentPage}&limit=10`;
 
       const params = new URLSearchParams();
@@ -76,7 +76,7 @@ export default function AdminCoFoundersPage() {
 
     try {
       const token = authService.getToken();
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/co-founders/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -94,7 +94,7 @@ export default function AdminCoFoundersPage() {
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
       const token = authService.getToken();
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/co-founders/${id}`, {
         method: 'PUT',
         headers: {

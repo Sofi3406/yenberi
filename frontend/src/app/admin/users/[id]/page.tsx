@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api').replace(/\/api\/?$/, '');
 
 const buildUploadUrl = (value?: string | null) => {
   if (!value) return null;

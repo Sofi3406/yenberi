@@ -102,7 +102,7 @@ export default function EditEventPage() {
     const fetchEvent = async () => {
       try {
         setLoadingEvent(true);
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
         const res = await fetch(`${API_BASE}/events/${eventId}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to load event');
@@ -186,7 +186,7 @@ export default function EditEventPage() {
         return;
       }
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/events/${eventId}`, {
         method: 'PUT',
         headers: {

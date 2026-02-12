@@ -55,7 +55,7 @@ export default function AdminProjectsPage() {
     try {
       setLoading(true);
       const token = authService.getToken();
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       let url = `${API_BASE}/projects/admin/all?page=${currentPage}&limit=10`;
 
       const params = new URLSearchParams();
@@ -103,7 +103,7 @@ export default function AdminProjectsPage() {
 
     try {
       const token = authService.getToken();
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/projects/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -121,7 +121,7 @@ export default function AdminProjectsPage() {
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
       const token = authService.getToken();
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
       const response = await fetch(`${API_BASE}/projects/${id}`, {
         method: 'PUT',
         headers: {

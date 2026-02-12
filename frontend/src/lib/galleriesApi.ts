@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api';
 
 export async function fetchGalleries(params = {}) {
   const qs = new URLSearchParams(params).toString();
