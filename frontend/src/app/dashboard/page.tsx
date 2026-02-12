@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<{ eventsAttended: number; totalDonations: number; totalMembers: number; communityEngagement: number } | null>(null);
   const [recentActivities, setRecentActivities] = useState([]);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Array<{ _id: string; title: string; type: string; date: string; location: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
