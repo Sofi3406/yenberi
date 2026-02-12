@@ -182,7 +182,7 @@ export default function DonatePage() {
     }
   ];
 
-  const handleAmountSelect = (amount) => {
+  const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount('');
   };
