@@ -23,12 +23,12 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 // Format date helper
-const formatDate = (dateString: string) => {
+const formatDate = (dateInput: string | Date) => {
   try {
-    const date = new Date(dateString);
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
     return format(date, 'MMM dd, yyyy');
   } catch {
-    return dateString;
+    return typeof dateInput === 'string' ? dateInput : '';
   }
 };
 
