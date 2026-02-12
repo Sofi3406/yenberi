@@ -348,7 +348,8 @@ export default function DonatePage() {
       setReceiptFile(null);
       
     } catch (error) {
-      alert(`Donation failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Donation failed';
+      alert(`Donation failed: ${errorMessage}`);
       console.error('Donation error:', error);
     } finally {
       setLoading(false);
