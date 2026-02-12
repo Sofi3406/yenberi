@@ -388,7 +388,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Started</p>
-                    <p className="font-medium">{formatDate(user.createdAt)}</p>
+                    <p className="font-medium">{user.createdAt ? formatDate(user.createdAt) : '—'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Payment Due</p>
