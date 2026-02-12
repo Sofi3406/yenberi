@@ -54,7 +54,7 @@ export default function DonatePage() {
   const [showPaymentInstructions, setShowPaymentInstructions] = useState(false);
   const [currentDonation, setCurrentDonation] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
-  const [receiptFile, setReceiptFile] = useState(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [hoveredProject, setHoveredProject] = useState(null);
   const [activeTab, setActiveTab] = useState('donate');
