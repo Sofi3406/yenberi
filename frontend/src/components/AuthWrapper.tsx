@@ -26,8 +26,8 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     const isRegisterRoute = pathname.startsWith('/auth/register');
     const isPublicRoute = pathname === '/' || pathname.startsWith('/auth');
 
-    if (!isAuthenticated && isRegisterRoute) {
-      router.replace('/auth/login');
+    if (isAuthenticated && isRegisterRoute) {
+      router.replace('/dashboard');
       return;
     }
 
