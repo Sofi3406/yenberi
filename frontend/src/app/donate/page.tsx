@@ -111,7 +111,7 @@ export default function DonatePage() {
     { amount: 10000, label: 'ETB 10,000', popular: false }
   ];
 
-  const projectCategoryStyles: Record<string, { label: string; color: string; icon: JSX.Element }> = {
+  const projectCategoryStyles: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     education: { label: 'Education', color: 'from-blue-500 to-indigo-500', icon: <BookOpen className="w-5 h-5" /> },
     culture: { label: 'Culture', color: 'from-purple-500 to-pink-500', icon: <Heart className="w-5 h-5" /> },
     health: { label: 'Health', color: 'from-rose-500 to-red-500', icon: <HeartHandshake className="w-5 h-5" /> },
