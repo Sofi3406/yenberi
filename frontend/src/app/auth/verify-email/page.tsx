@@ -34,7 +34,8 @@ export default function VerifyEmailPage() {
           router.push('/auth/login');
         }, 5000);
       } catch (err) {
-        setError(err.message || 'Email verification failed');
+        const errorMessage = err instanceof Error ? err.message : 'Email verification failed';
+        setError(errorMessage);
         setSuccess(false);
       } finally {
         setLoading(false);
