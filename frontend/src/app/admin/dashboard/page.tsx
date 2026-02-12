@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
       href: '/admin/payments',
       color: 'bg-green-500',
       count: stats?.pendingPayments || 0,
-      badge: stats?.pendingPayments > 0 ? 'pending' : null
+      badge: (stats?.pendingPayments ?? 0) > 0 ? 'pending' : null
     },
     {
       title: 'Verify Donations',
@@ -130,7 +130,7 @@ export default function AdminDashboardPage() {
       href: '/admin/donations',
       color: 'bg-teal-500',
       count: stats?.pendingDonationReceipts || 0,
-      badge: stats?.pendingDonationReceipts > 0 ? 'pending' : null
+      badge: (stats?.pendingDonationReceipts ?? 0) > 0 ? 'pending' : null
     },
     {
       title: 'Manage Events',
@@ -173,7 +173,7 @@ export default function AdminDashboardPage() {
       href: '/admin/users?tab=verifications',
       color: 'bg-orange-500',
       count: stats?.pendingVerifications || 0,
-      badge: stats?.pendingVerifications > 0 ? 'pending' : null
+      badge: (stats?.pendingVerifications ?? 0) > 0 ? 'pending' : null
     },
     {
       title: 'Notifications',
@@ -205,14 +205,14 @@ export default function AdminDashboardPage() {
       value: stats?.pendingPayments || 0,
       icon: <Clock className="w-6 h-6" />,
       color: 'text-yellow-600 bg-yellow-100',
-      change: stats?.pendingPayments > 0 ? 'Action needed' : 'All clear'
+      change: (stats?.pendingPayments ?? 0) > 0 ? 'Action needed' : 'All clear'
     },
     {
       label: 'Pending Donations',
       value: stats?.pendingDonationReceipts || 0,
       icon: <FileText className="w-6 h-6" />,
       color: 'text-teal-600 bg-teal-100',
-      change: stats?.pendingDonationReceipts > 0 ? 'Action needed' : 'All clear'
+      change: (stats?.pendingDonationReceipts ?? 0) > 0 ? 'Action needed' : 'All clear'
     },
     {
       label: 'Verified Payments',
@@ -233,7 +233,7 @@ export default function AdminDashboardPage() {
       value: stats?.pendingVerifications || 0,
       icon: <AlertCircle className="w-6 h-6" />,
       color: 'text-red-600 bg-red-100',
-      change: stats?.pendingVerifications > 0 ? 'Review needed' : 'All clear'
+      change: (stats?.pendingVerifications ?? 0) > 0 ? 'Review needed' : 'All clear'
     },
   ];
 
