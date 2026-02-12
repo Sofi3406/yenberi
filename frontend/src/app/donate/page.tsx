@@ -199,7 +199,7 @@ export default function DonatePage() {
     setSelectedAmount(null);
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
