@@ -99,6 +99,9 @@ export default function DocumentsPage() {
     return date.toLocaleDateString();
   };
 
+  const registrationDocs = documents.filter(doc => doc.folder !== 'donation-receipts');
+  const donationDocs = documents.filter(doc => doc.folder === 'donation-receipts');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -113,43 +116,102 @@ export default function DocumentsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {documents.map((doc) => (
-              <div key={doc.label} className="border rounded-lg p-5 bg-gray-50">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-white border flex items-center justify-center">
-                    <IdCard className="w-4 h-4 text-gray-700" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="font-semibold text-gray-900">{doc.label}</h2>
-                    <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
-                    <div className="mt-3 text-sm">
-                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${doc.status === 'uploaded' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        {doc.status === 'uploaded' ? 'Uploaded' : 'Missing'}
-                      </span>
-                      <div className="mt-2 text-gray-500">
-                        {doc.filename ? `File: ${doc.filename}` : 'No file on record.'}
+          <div className="space-y-10">
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Registration Documents</h2>
+                <span className="text-sm text-gray-500">{registrationDocs.length} files</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {registrationDocs.map((doc) => (
+                  <div key={doc.label} className="border rounded-lg p-5 bg-gray-50">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full bg-white border flex items-center justify-center">
+                        <IdCard className="w-4 h-4 text-gray-700" />
                       </div>
-                      {doc.uploadedAt && (
-                        <div className="mt-1 text-xs text-gray-500">
-                          Uploaded: {formatDate(doc.uploadedAt)}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{doc.label}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+                        <div className="mt-3 text-sm">
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${doc.status === 'uploaded' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {doc.status === 'uploaded' ? 'Uploaded' : 'Missing'}
+                          </span>
+                          <div className="mt-2 text-gray-500">
+                            {doc.filename ? `File: ${doc.filename}` : 'No file on record.'}
+                          </div>
+                          {doc.uploadedAt && (
+                            <div className="mt-1 text-xs text-gray-500">
+                              Uploaded: {formatDate(doc.uploadedAt)}
+                            </div>
+                          )}
+                          {doc.status === 'uploaded' && getDownloadUrl(doc) && (
+                            <a
+                              href={getDownloadUrl(doc)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-3 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                            >
+                              Download
+                            </a>
+                          )}
                         </div>
-                      )}
-                      {doc.status === 'uploaded' && getDownloadUrl(doc) && (
-                        <a
-                          href={getDownloadUrl(doc)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-3 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                        >
-                          Download
-                        </a>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Donation Receipts</h2>
+                <span className="text-sm text-gray-500">{donationDocs.length} files</span>
+              </div>
+              {donationDocs.length === 0 ? (
+                <div className="border border-dashed rounded-lg p-6 text-sm text-gray-500 bg-gray-50">
+                  No donation receipts uploaded yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {donationDocs.map((doc) => (
+                    <div key={doc.label} className="border rounded-lg p-5 bg-gray-50">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full bg-white border flex items-center justify-center">
+                          <IdCard className="w-4 h-4 text-gray-700" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">{doc.label}</h3>
+                          <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+                          <div className="mt-3 text-sm">
+                            <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              Uploaded
+                            </span>
+                            <div className="mt-2 text-gray-500">
+                              {doc.filename ? `File: ${doc.filename}` : 'No file on record.'}
+                            </div>
+                            {doc.uploadedAt && (
+                              <div className="mt-1 text-xs text-gray-500">
+                                Uploaded: {formatDate(doc.uploadedAt)}
+                              </div>
+                            )}
+                            {getDownloadUrl(doc) && (
+                              <a
+                                href={getDownloadUrl(doc)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-3 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                              >
+                                Download
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         </div>
       </div>
