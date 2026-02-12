@@ -381,7 +381,8 @@ export default function DonatePage() {
       setSuccessMessage('Thank you! Your receipt has been submitted for verification.');
       
     } catch (error) {
-      alert(`Receipt upload failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Receipt upload failed';
+      alert(`Receipt upload failed: ${errorMessage}`);
     } finally {
       setUploadLoading(false);
     }
