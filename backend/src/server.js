@@ -21,6 +21,7 @@ import coFoundersRoutes from './routes/coFounders.js';
 // Import email service and payment reminder
 import { testEmailService, sendMonthlyPaymentReminder } from './services/emailService.js';
 import User from './models/User.js';
+import bcrypt from 'bcryptjs';
 
 // Load env vars
 dotenv.config();
@@ -71,6 +72,68 @@ app.options('*', cors(corsOptions));
 // Body parser middleware
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+// Temporary bootstrap endpoint to create/update a super admin (token protected)
+app.post('/api/bootstrap/super-admin', async (req, res) => {
+  try {
+    const token = req.get('x-bootstrap-token');
+    if (!process.env.BOOTSTRAP_TOKEN) {
+      return res.status(500).json({ success: false, message: 'BOOTSTRAP_TOKEN is not set' });
+    }
+    if (!token || token !== process.env.BOOTSTRAP_TOKEN) {
+      return res.status(401).json({ success: false, message: 'Invalid bootstrap token' });
+    }
+
+    const email = process.env.SUPER_ADMIN_EMAIL;
+    const password = process.env.SUPER_ADMIN_PASSWORD;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD missing' });
+    }
+
+    const adminData = {
+      name: process.env.SUPER_ADMIN_NAME || 'Sofiya Yasin',
+      email,
+      phone: process.env.SUPER_ADMIN_PHONE || '+251930670088',
+      woreda: process.env.SUPER_ADMIN_WOREDA || 'wulbarag-woreda',
+      role: 'super_admin',
+      language: 'en',
+      emailVerified: true,
+      isActive: true,
+      profession: process.env.SUPER_ADMIN_PROFESSION || 'computer_science',
+      currentResident: process.env.SUPER_ADMIN_RESIDENT || 'Addis Ababa',
+      maritalStatus: process.env.SUPER_ADMIN_MARITAL_STATUS || 'single',
+      userType: process.env.SUPER_ADMIN_USER_TYPE || 'student',
+      membershipPlan: 'active',
+      membership: {
+        membershipId: 'SLMA-ADMIN-001',
+        status: 'active',
+        type: 'executive',
+      },
+    };
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const existing = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    if (existing) {
+      Object.assign(existing, adminData);
+      existing.password = hashedPassword;
+      await existing.save({ validateBeforeSave: false });
+      return res.json({ success: true, message: 'Updated existing user to super_admin' });
+    }
+
+    const admin = new User({
+      ...adminData,
+      password: hashedPassword,
+    });
+    await admin.save({ validateBeforeSave: false });
+
+    return res.json({ success: true, message: 'Created new super_admin' });
+  } catch (error) {
+    console.error('Bootstrap super admin error:', error);
+    return res.status(500).json({ success: false, message: 'Bootstrap failed', error: error.message });
+  }
+});
 
 // Static folders
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
