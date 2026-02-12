@@ -193,7 +193,7 @@ export default function DonatePage() {
     }
   };
 
-  const handleCustomAmountChange = (e) => {
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCustomAmount(value);
     setSelectedAmount(null);
