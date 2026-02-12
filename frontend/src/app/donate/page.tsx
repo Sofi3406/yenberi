@@ -38,7 +38,7 @@ import { fetchProjects } from '@/lib/projectsApi';
 export default function DonatePage() {
   const donorInfoRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [selectedAmount, setSelectedAmount] = useState(null);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [donationType, setDonationType] = useState('one-time');
   const [selectedProject, setSelectedProject] = useState('General Fund');
