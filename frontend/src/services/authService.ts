@@ -35,6 +35,7 @@ export interface User {
   name: string;
   fatherName?: string;
   email: string;
+  phone?: string;
   role: 'member' | 'woreda_admin' | 'super_admin';
   membershipPlan?: 'basic' | 'active' | 'premium' | string;
   payment?: {
