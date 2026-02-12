@@ -20,7 +20,10 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     if (!token && user) {
       localStorage.removeItem('slma_user');
     }
-    setIsAuthenticated(!!token);
+    if (token && !user) {
+      localStorage.removeItem('slma_token');
+    }
+    setIsAuthenticated(!!token && !!user);
     setIsLoading(false);
   }, [pathname]); // Re-check on route change
 
