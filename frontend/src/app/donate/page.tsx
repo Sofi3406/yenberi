@@ -306,8 +306,8 @@ export default function DonatePage() {
     setLoading(true);
     setSuccessMessage('');
 
-    const donationAmount = selectedAmount || customAmount;
-    if (!donationAmount || donationAmount <= 0) {
+    const donationAmount = selectedAmount ?? (customAmount ? Number(customAmount) : 0);
+    if (!Number.isFinite(donationAmount) || donationAmount <= 0) {
       alert('Please select or enter a donation amount');
       setLoading(false);
       return;
