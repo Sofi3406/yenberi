@@ -38,7 +38,7 @@ const eventSchema = z.object({
   googleMeetingLink: z.string().url().optional().or(z.literal('')),
 });
 
-type EventFormData = z.infer<typeof eventSchema>;
+type EventFormData = z.input<typeof eventSchema>;
 
 const suitableForOptions = [
   { value: 'men', label: 'Men Only' },
