@@ -35,6 +35,44 @@ import { authService } from '@/services/authService';
 import api from '@/services/api';
 import { fetchProjects } from '@/lib/projectsApi';
 
+type FeaturedProject = {
+  _id?: string;
+  id?: string;
+  title: string;
+  description?: string;
+  category?: string;
+  status?: string;
+  image?: string;
+  progress?: number;
+  participants?: number;
+  location?: string;
+  timeline?: string;
+};
+
+type AdminDonation = {
+  _id?: string;
+  id?: string;
+  transactionId?: string;
+  amount?: number;
+  paymentMethod?: string;
+  donor?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+  };
+  receipt?: {
+    filename?: string;
+  };
+};
+
+type VerificationInput = {
+  referenceNumber?: string;
+  notes?: string;
+};
+
+type VerificationField = 'referenceNumber' | 'notes';
+type VerificationStatus = 'verified' | 'rejected';
+
 export default function DonatePage() {
   const donorInfoRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,13 +94,13 @@ export default function DonatePage() {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const [hoveredProject, setHoveredProject] = useState(null);
+  const [hoveredProject, setHoveredProject] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('donate');
-  const [adminDonations, setAdminDonations] = useState([]);
+  const [adminDonations, setAdminDonations] = useState<AdminDonation[]>([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState('');
-  const [verificationInputs, setVerificationInputs] = useState({});
-  const [featuredProjects, setFeaturedProjects] = useState([]);
+  const [verificationInputs, setVerificationInputs] = useState<Record<string, VerificationInput>>({});
+  const [featuredProjects, setFeaturedProjects] = useState<FeaturedProject[]>([]);
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [featuredError, setFeaturedError] = useState('');
 
@@ -496,7 +534,7 @@ export default function DonatePage() {
     loadFeaturedProjects();
   }, []);
 
-  const handleVerificationInputChange = (donationId, field, value) => {
+  const handleVerificationInputChange = (donationId: string, field: VerificationField, value: string) => {
     setVerificationInputs(prev => ({
       ...prev,
       [donationId]: {
@@ -507,7 +545,7 @@ export default function DonatePage() {
     }));
   };
 
-  const handleVerifyDonation = async (donationId, status) => {
+  const handleVerifyDonation = async (donationId: string, status: VerificationStatus) => {
     try {
       const inputs = verificationInputs[donationId] || {};
       await api.put(`/donations/${donationId}/verify`, {
@@ -521,7 +559,7 @@ export default function DonatePage() {
     }
   };
 
-  const getReceiptUrl = (donation) => {
+  const getReceiptUrl = (donation: AdminDonation) => {
     if (!donation?.receipt?.filename) return null;
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slma.onrender.com/api').replace(/\/api\/?$/, '');
     return `${baseUrl}/uploads/donation-receipts/${donation.receipt.filename}`;
@@ -649,7 +687,7 @@ export default function DonatePage() {
                         : 'border-transparent hover:border-purple-200'
                     }`}
                     onClick={() => setSelectedProject(project.title)}
-                    onMouseEnter={() => setHoveredProject(project._id || project.id)}
+                    onMouseEnter={() => setHoveredProject(project._id || project.id || null)}
                     onMouseLeave={() => setHoveredProject(null)}
                   >
                     <div className="relative -mx-6 -mt-6 mb-5">
@@ -914,7 +952,7 @@ export default function DonatePage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 resize-none"
                   placeholder="Add a personal message or dedication with your donation..."
-                  rows="3"
+                  rows={3}
                 />
               </div>
               
@@ -1214,9 +1252,9 @@ export default function DonatePage() {
               <div className="text-sm text-gray-600">No pending receipts found.</div>
             ) : (
               <div className="space-y-4">
-                {adminDonations.map((donation) => {
+                {adminDonations.map((donation, index) => {
                   const receiptUrl = getReceiptUrl(donation);
-                  const donationId = donation._id || donation.id;
+                  const donationId = donation._id || donation.id || `donation-${index}`;
                   return (
                     <div key={donationId} className="border border-gray-200 rounded-xl p-4">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

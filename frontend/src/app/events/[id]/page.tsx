@@ -4,20 +4,45 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
-function formatDate(dateStr) {
+type EventDetail = {
+  title?: string;
+  image?: string;
+  date?: string;
+  time?: string;
+  category?: string;
+  status?: string;
+  isVirtual?: boolean;
+  address?: string;
+  location?: string;
+  googleMeetingLink?: string;
+  suitableFor?: string[];
+  attendees?: unknown[];
+  attendeesCount?: number;
+  maxAttendees?: number;
+  registrationRequired?: boolean;
+  registrationUrl?: string;
+  registrationDeadline?: string;
+  organizer?: { name?: string; email?: string } | string;
+  description?: string;
+  adminNotes?: string;
+};
+
+function formatDate(dateStr: string | Date | undefined) {
   try {
-    const d = new Date(dateStr);
+    if (!dateStr) return '';
+    const d = dateStr instanceof Date ? dateStr : new Date(dateStr);
     return d.toLocaleString();
   } catch (e) {
-    return dateStr || '';
+    return typeof dateStr === 'string' ? dateStr : '';
   }
 }
 
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const id = params?.id;
-  const [event, setEvent] = useState(null);
+  const idParam = params?.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -108,8 +133,13 @@ export default function EventDetailPage() {
 
             {event.organizer && (
               <div className="mt-3 text-sm text-gray-700">
-                <strong>Organizer:</strong> {event.organizer.name || event.organizer}
-                {event.organizer.email && <span className="ml-2">• {event.organizer.email}</span>}
+                <strong>Organizer:</strong>{' '}
+                {typeof event.organizer === 'string'
+                  ? event.organizer
+                  : event.organizer?.name || 'Organizer'}
+                {typeof event.organizer !== 'string' && event.organizer?.email && (
+                  <span className="ml-2">• {event.organizer.email}</span>
+                )}
               </div>
             )}
           </div>
