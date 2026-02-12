@@ -212,7 +212,7 @@ export default function DonatePage() {
     }));
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files[0];
     if (file) {
       // Check file type
