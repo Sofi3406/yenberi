@@ -289,19 +289,27 @@ export default function AdminUserDetailPage() {
                 <p className="font-medium capitalize">{user.payment?.status || '—'}</p>
               </div>
             </div>
-            {getReceiptUrl() && user.payment?.status === 'pending' && (
-              <div className="mt-4">
-                <a
-                  href={getReceiptUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-green-600 hover:text-green-800 font-medium"
-                >
-                  <FileText className="w-5 h-5" />
-                  View Payment Receipt
-                </a>
-              </div>
-            )}
+            {(() => {
+              const receiptUrl = getReceiptUrl() ?? undefined;
+
+              if (!receiptUrl || user.payment?.status !== 'pending') {
+                return null;
+              }
+
+              return (
+                <div className="mt-4">
+                  <a
+                    href={receiptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-green-600 hover:text-green-800 font-medium"
+                  >
+                    <FileText className="w-5 h-5" />
+                    View Payment Receipt
+                  </a>
+                </div>
+              );
+            })()}
           </section>
         </div>
       </div>
