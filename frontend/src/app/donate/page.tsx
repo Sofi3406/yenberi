@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   CreditCard, 
   Smartphone, 
@@ -33,8 +33,10 @@ import {
 } from 'lucide-react';
 import { authService } from '@/services/authService';
 import api from '@/services/api';
+import { fetchProjects } from '@/lib/projectsApi';
 
 export default function DonatePage() {
+  const donorInfoRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState('');
@@ -60,6 +62,9 @@ export default function DonatePage() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState('');
   const [verificationInputs, setVerificationInputs] = useState({});
+  const [featuredProjects, setFeaturedProjects] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [featuredError, setFeaturedError] = useState('');
 
   // API Base URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -106,60 +111,22 @@ export default function DonatePage() {
     { amount: 10000, label: 'ETB 10,000', popular: false }
   ];
 
-  const impactProjects = [
-    {
-      id: 1,
-      name: 'Silte Language Archive',
-      value: 'Silte Language Archive',
-      description: 'Digitizing and preserving Silte language materials for future generations',
-      goal: 'ETB 500,000',
-      raised: 'ETB 350,000',
-      progress: 70,
-      badge: 'Education',
-      icon: <BookOpen className="w-5 h-5" />,
-      color: 'from-blue-500 to-indigo-500',
-      supporters: '240+'
-    },
-    {
-      id: 2,
-      name: 'Youth Leadership Program',
-      value: 'Youth Leadership Program',
-      description: 'Training young Silte leaders with skills for community development',
-      goal: 'ETB 300,000',
-      raised: 'ETB 180,000',
-      progress: 60,
-      badge: 'Empowerment',
-      icon: <UsersIcon className="w-5 h-5" />,
-      color: 'from-emerald-500 to-teal-500',
-      supporters: '180+'
-    },
-    {
-      id: 3,
-      name: 'Cultural Festival 2025',
-      value: 'Cultural Festival 2025',
-      description: 'Annual celebration of Silte heritage with music, dance, and art',
-      goal: 'ETB 750,000',
-      raised: 'ETB 450,000',
-      progress: 60,
-      badge: 'Culture',
-      icon: <Heart className="w-5 h-5" />,
-      color: 'from-purple-500 to-pink-500',
-      supporters: '350+'
-    },
-    {
-      id: 4,
-      name: 'Community Health Initiative',
-      value: 'Community Health Initiative',
-      description: 'Providing healthcare support and medical supplies to rural communities',
-      goal: 'ETB 400,000',
-      raised: 'ETB 220,000',
-      progress: 55,
-      badge: 'Health',
-      icon: <HeartHandshake className="w-5 h-5" />,
-      color: 'from-rose-500 to-red-500',
-      supporters: '150+'
+  const projectCategoryStyles = {
+    education: { label: 'Education', color: 'from-blue-500 to-indigo-500', icon: <BookOpen className="w-5 h-5" /> },
+    culture: { label: 'Culture', color: 'from-purple-500 to-pink-500', icon: <Heart className="w-5 h-5" /> },
+    health: { label: 'Health', color: 'from-rose-500 to-red-500', icon: <HeartHandshake className="w-5 h-5" /> },
+    community: { label: 'Community', color: 'from-emerald-500 to-teal-500', icon: <UsersIcon className="w-5 h-5" /> },
+    youth: { label: 'Youth', color: 'from-amber-500 to-orange-500', icon: <UsersIcon className="w-5 h-5" /> },
+    heritage: { label: 'Heritage', color: 'from-indigo-500 to-violet-500', icon: <BookOpen className="w-5 h-5" /> }
+  };
+
+  const getProjectStyle = (category) => {
+    if (!category) {
+      return { label: 'Community', color: 'from-blue-500 to-indigo-500', icon: <Sparkles className="w-5 h-5" /> };
     }
-  ];
+    const key = category.toLowerCase();
+    return projectCategoryStyles[key] || { label: category, color: 'from-blue-500 to-indigo-500', icon: <Sparkles className="w-5 h-5" /> };
+  };
 
   const impactStats = [
     { 
@@ -218,6 +185,12 @@ export default function DonatePage() {
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount);
     setCustomAmount('');
+  };
+
+  const scrollToDonorInfo = () => {
+    if (donorInfoRef.current) {
+      donorInfoRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const handleCustomAmountChange = (e) => {
@@ -497,6 +470,25 @@ export default function DonatePage() {
     loadAdminDonations();
   }, []);
 
+  useEffect(() => {
+    const loadFeaturedProjects = async () => {
+      try {
+        setFeaturedLoading(true);
+        setFeaturedError('');
+        const data = await fetchProjects({ limit: 4 });
+        setFeaturedProjects(data?.data || []);
+      } catch (error) {
+        console.error('Error loading featured projects:', error);
+        setFeaturedError('Failed to load projects. Please try again later.');
+        setFeaturedProjects([]);
+      } finally {
+        setFeaturedLoading(false);
+      }
+    };
+
+    loadFeaturedProjects();
+  }, []);
+
   const handleVerificationInputChange = (donationId, field, value) => {
     setVerificationInputs(prev => ({
       ...prev,
@@ -619,88 +611,108 @@ export default function DonatePage() {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-10">
             Featured <span className="text-purple-600">Projects</span>
           </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {impactProjects.map((project) => (
-              <div 
-                key={project.id}
-                className={`group relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:-translate-y-2 cursor-pointer ${
-                  selectedProject === project.value 
-                    ? 'border-purple-500 border-opacity-50 shadow-purple-100' 
-                    : 'border-transparent hover:border-purple-200'
-                }`}
-                onClick={() => setSelectedProject(project.value)}
-                onMouseEnter={() => setHoveredProject(project.id)}
-                onMouseLeave={() => setHoveredProject(null)}
-              >
-                {/* Progress bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>Progress</span>
-                    <span className="font-semibold">{project.progress}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full bg-gradient-to-r ${project.color} transition-all duration-1000 ease-out`}
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
-                  </div>
+          {featuredLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="animate-pulse bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                  <div className="h-28 bg-gray-200 rounded-xl mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                  <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-5/6 mb-4"></div>
+                  <div className="h-2 bg-gray-200 rounded w-full"></div>
                 </div>
-                
-                {/* Project header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 bg-gradient-to-br ${project.color} rounded-lg`}>
-                      <div className="text-white">
-                        {project.icon}
+              ))}
+            </div>
+          ) : featuredProjects.length === 0 ? (
+            <div className="text-center text-gray-600 bg-white/70 border border-dashed border-gray-200 rounded-2xl py-10">
+              {featuredError || 'No projects available right now. Please check back soon.'}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProjects.map((project) => {
+                const style = getProjectStyle(project.category);
+                const progressValue = Number.isFinite(project.progress) ? project.progress : 0;
+                const supporters = project.participants || 0;
+                return (
+                  <div
+                    key={project._id || project.id || project.title}
+                    className={`group relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:-translate-y-2 cursor-pointer ${
+                      selectedProject === project.title
+                        ? 'border-purple-500 border-opacity-50 shadow-purple-100'
+                        : 'border-transparent hover:border-purple-200'
+                    }`}
+                    onClick={() => setSelectedProject(project.title)}
+                    onMouseEnter={() => setHoveredProject(project._id || project.id)}
+                    onMouseLeave={() => setHoveredProject(null)}
+                  >
+                    <div className="relative -mx-6 -mt-6 mb-5">
+                      <div
+                        className="project-image-container rounded-2xl"
+                        style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                      >
+                        {!project.image && (
+                          <div className={`h-full w-full bg-gradient-to-br ${style.color} flex items-center justify-center text-white`}>{style.icon}</div>
+                        )}
+                        <div className="absolute top-3 left-3">
+                          <span className="text-xs px-2 py-1 bg-white/90 text-gray-800 rounded-full font-medium">
+                            {style.label}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                      {project.name}
-                    </h3>
-                  </div>
-                  <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full font-medium">
-                    {project.badge}
-                  </span>
-                </div>
-                
-                {/* Description */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {project.description}
-                </p>
-                
-                {/* Stats */}
-                <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                  <div className="text-left">
-                    <div className="text-xs text-gray-500">Raised</div>
-                    <div className="font-semibold text-gray-900">{project.raised}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-gray-500">Goal</div>
-                    <div className="font-semibold text-gray-900">{project.goal}</div>
-                  </div>
-                </div>
-                
-                {/* Supporters */}
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full"></div>
-                      <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full"></div>
-                      <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full"></div>
+
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors line-clamp-1">
+                        {project.title}
+                      </h3>
+                      <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full font-medium capitalize">
+                        {project.status || 'active'}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500">{project.supporters} supporters</span>
-                  </div>
-                  
-                  {selectedProject === project.value && (
-                    <div className="animate-pulse">
-                      <Check className="w-5 h-5 text-purple-500" />
+
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {project.description}
+                    </p>
+
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Progress</span>
+                        <span className="font-semibold">{progressValue}%</span>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full bg-gradient-to-r ${style.color} transition-all duration-1000 ease-out`}
+                          style={{ width: `${progressValue}%` }}
+                        ></div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{project.location || 'Silte Zone'}</span>
+                      <span>{project.timeline || 'Ongoing'}</span>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full"></div>
+                          <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full"></div>
+                          <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full"></div>
+                        </div>
+                        <span className="text-xs text-gray-500">{supporters} supporters</span>
+                      </div>
+
+                      {selectedProject === project.title && (
+                        <div className="animate-pulse">
+                          <Check className="w-5 h-5 text-purple-500" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Main Donation Form */}
@@ -709,10 +721,6 @@ export default function DonatePage() {
             <h2 className="text-3xl font-bold text-gray-900">
               Make Your <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Donation</span>
             </h2>
-            <div className="hidden md:flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500 animate-pulse" />
-              <span className="text-sm font-medium text-amber-600">Quick & Secure</span>
-            </div>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-10">
@@ -732,7 +740,10 @@ export default function DonatePage() {
                         ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg scale-105'
                         : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 hover:shadow-md'
                     }`}
-                    onClick={() => handleAmountSelect(item.amount)}
+                    onClick={() => {
+                      handleAmountSelect(item.amount);
+                      scrollToDonorInfo();
+                    }}
                   >
                     {item.popular && (
                       <div className="absolute -top-2 -right-2">
@@ -779,7 +790,7 @@ export default function DonatePage() {
             </div>
 
             {/* Payment Method */}
-            <div className="space-y-4">
+            <div className="space-y-4" ref={donorInfoRef}>
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-blue-500" />
                 Select Payment Method

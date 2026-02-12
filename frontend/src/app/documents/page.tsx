@@ -10,8 +10,9 @@ type DocumentInfo = {
   description: string;
   filename?: string;
   filePath?: string;
-  folder: 'registration' | 'receipts';
+  folder: 'registration' | 'receipts' | 'donation-receipts';
   status: 'uploaded' | 'missing';
+  uploadedAt?: string;
 };
 
 export default function DocumentsPage() {
@@ -52,6 +53,25 @@ export default function DocumentsPage() {
         }
       ];
 
+      try {
+        const donationRes = await api.get('/donations/my');
+        const donationDocs = (donationRes.data?.donations || [])
+          .filter((donation: any) => donation?.receipt?.uploaded)
+          .map((donation: any) => ({
+            label: `Donation Receipt (${donation.transactionId})`,
+            description: `Donation to ${donation.project || 'General Fund'} • ETB ${donation.amount}`,
+            filename: donation.receipt?.originalName || donation.receipt?.filename,
+            filePath: donation.receipt?.path,
+            folder: 'donation-receipts' as const,
+            status: 'uploaded' as const,
+            uploadedAt: donation.receipt?.uploadedAt || donation.createdAt
+          }));
+
+        docs.push(...donationDocs);
+      } catch (error) {
+        // Ignore donation load errors to keep registration docs visible
+      }
+
       setDocuments(docs);
     };
 
@@ -70,6 +90,13 @@ export default function DocumentsPage() {
     const file = getFileName(doc.filePath) || getFileName(doc.filename);
     if (!file) return undefined;
     return `${base}/uploads/${doc.folder}/${encodeURIComponent(file)}`;
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return undefined;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return undefined;
+    return date.toLocaleDateString();
   };
 
   return (
@@ -103,6 +130,11 @@ export default function DocumentsPage() {
                       <div className="mt-2 text-gray-500">
                         {doc.filename ? `File: ${doc.filename}` : 'No file on record.'}
                       </div>
+                      {doc.uploadedAt && (
+                        <div className="mt-1 text-xs text-gray-500">
+                          Uploaded: {formatDate(doc.uploadedAt)}
+                        </div>
+                      )}
                       {doc.status === 'uploaded' && getDownloadUrl(doc) && (
                         <a
                           href={getDownloadUrl(doc)}
