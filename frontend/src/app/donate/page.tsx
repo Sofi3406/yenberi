@@ -120,7 +120,7 @@ export default function DonatePage() {
     heritage: { label: 'Heritage', color: 'from-indigo-500 to-violet-500', icon: <BookOpen className="w-5 h-5" /> }
   };
 
-  const getProjectStyle = (category) => {
+  const getProjectStyle = (category?: string) => {
     if (!category) {
       return { label: 'Community', color: 'from-blue-500 to-indigo-500', icon: <Sparkles className="w-5 h-5" /> };
     }
