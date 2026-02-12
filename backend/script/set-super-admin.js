@@ -1,5 +1,5 @@
 /**
- * Set Sofiya Yasin (sofiyasin190@gmail.com) as super admin.
+ * Set a super admin using environment variables.
  * Run: node script/set-super-admin.js
  */
 import mongoose from 'mongoose';
@@ -10,19 +10,23 @@ import User from '../src/models/User.js';
 dotenv.config();
 
 const SUPER_ADMIN = {
-  email: 'sofiyasin190@gmail.com',
-  password: 'Sofi@123',
-  name: 'Sofiya Yasin',
-  profession: 'computer_science',
-  currentResident: 'Addis Ababa',
-  maritalStatus: 'single',
-  userType: 'student',
-  woreda: 'hulbarag',
-  phone: '+251930670088',
+  email: process.env.SUPER_ADMIN_EMAIL,
+  password: process.env.SUPER_ADMIN_PASSWORD,
+  name: process.env.SUPER_ADMIN_NAME || 'Sofiya Yasin',
+  profession: process.env.SUPER_ADMIN_PROFESSION || 'computer_science',
+  currentResident: process.env.SUPER_ADMIN_RESIDENT || 'Addis Ababa',
+  maritalStatus: process.env.SUPER_ADMIN_MARITAL_STATUS || 'single',
+  userType: process.env.SUPER_ADMIN_USER_TYPE || 'student',
+  woreda: process.env.SUPER_ADMIN_WOREDA || 'wulbarag-woreda',
+  phone: process.env.SUPER_ADMIN_PHONE || '+251930670088',
 };
 
 async function setSuperAdmin() {
   try {
+    if (!SUPER_ADMIN.email || !SUPER_ADMIN.password) {
+      console.error('❌ Missing SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD in environment');
+      process.exit(1);
+    }
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/slma');
     console.log('Connected to DB');
 
