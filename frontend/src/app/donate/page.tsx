@@ -213,7 +213,7 @@ export default function DonatePage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       // Check file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
