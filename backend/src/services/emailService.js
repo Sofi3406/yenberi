@@ -13,6 +13,8 @@ const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 const emailFrom = process.env.SMTP_FROM || process.env.EMAIL_FROM || emailUser;
 const emailService = process.env.SMTP_SERVICE || process.env.EMAIL_SERVICE;
 const emailSecure = parseBool(process.env.SMTP_SECURE || process.env.EMAIL_SECURE);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resendFrom = process.env.RESEND_FROM || emailFrom;
 const emailDisabled =
   parseBool(process.env.SMTP_DISABLED || process.env.EMAIL_DISABLED) === true ||
   !emailUser ||
@@ -35,9 +37,9 @@ const transporter = emailDisabled
     });
 
 // Test transporter connection
-if (emailDisabled) {
+if (emailDisabled && !resendApiKey) {
   console.warn('⚠️ Email is disabled or missing SMTP credentials. Emails will be skipped.');
-} else {
+} else if (!resendApiKey) {
   transporter.verify((error) => {
     if (error) {
       console.error('❌ Email transporter error:', error);
@@ -46,6 +48,43 @@ if (emailDisabled) {
     }
   });
 }
+
+const sendMail = async (mailOptions) => {
+  if (resendApiKey) {
+    const from = mailOptions.from || resendFrom;
+    if (!from) {
+      throw new Error('RESEND_FROM (or SMTP_FROM/EMAIL_FROM) is required for Resend');
+    }
+
+    const to = Array.isArray(mailOptions.to) ? mailOptions.to : [mailOptions.to];
+    const payload = {
+      from,
+      to,
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+      text: mailOptions.text,
+    };
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Resend API error: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return { messageId: data.id };
+  }
+
+  return sendMail(mailOptions);
+};
 
 // ============================================
 // ✅ EXISTING FUNCTIONS - UNCHANGED BELOW
@@ -102,7 +141,7 @@ export const sendVerificationEmail = async (email, name, token) => {
       text: `Hello ${name},\n\nWelcome to Silte Lmat Mehber! Please verify your email by clicking this link: ${verificationUrl}\n\nIf you didn't create an account, ignore this email.\n\nBest regards,\nThe SLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Verification email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -185,7 +224,7 @@ export const sendPaymentVerificationEmail = async (email, name, plan, membership
       text: `Hello ${name},\n\nThank you for submitting your payment receipt for ${planName} membership.\n\nMembership ID: ${membershipId}\nPlan: ${planName}\nAmount: ${amount}\nStatus: Payment Verification Pending\n\nOur team will verify your payment receipt within 24-48 hours. You'll receive another email once verification is complete.\n\nIf you have questions, contact membership@siltecommunity.org\n\nBest regards,\nSLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Payment verification email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -262,7 +301,7 @@ export const sendPaymentApprovedEmail = async (email, name, membershipId) => {
       text: `Congratulations ${name}!\n\nYour payment has been verified and your SLMA membership is now active!\n\nMembership ID: ${membershipId}\n\nYou can now:\n- Access all member benefits\n- Join community discussions\n- Attend events\n- Participate in voting\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nWelcome to the SLMA community!\n\nBest regards,\nSLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Payment approved email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -326,7 +365,7 @@ export const sendPasswordResetEmail = async (email, name, token) => {
       text: `Hello ${name},\n\nYou requested to reset your password. Click this link: ${resetUrl}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe SLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Password reset email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -403,7 +442,7 @@ export const sendWelcomeEmail = async (email, name, membershipId) => {
       text: `Hello ${name},\n\nWelcome to Silte Lmat Mehber! Your account is now verified.\n\nYour Membership ID: ${membershipId}\n\nYou can now:\n- Connect with community members\n- Attend events\n- Access exclusive resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nNeed help? Contact supportsiltecommunity@gmail.com\n\nBest regards,\nThe SLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Welcome email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -425,7 +464,7 @@ export const testEmailService = async (toEmail) => {
       html: '<h1>Test Email</h1><p>This is a test email from your SLMA backend server.</p><p>If you receive this, email service is working correctly!</p>'
     };
 
-    const info = await transporter.sendMail(testMailOptions);
+    const info = await sendMail(testMailOptions);
     console.log(`✅ Test email sent to ${toEmail}: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -502,7 +541,7 @@ export const sendUserVerificationEmail = async (email, name, membershipId) => {
       text: `Congratulations ${name}!\n\nYour SLMA account has been verified by our admin team. You can now access all member features!\n\n${membershipId ? `Membership ID: ${membershipId}\n\n` : ''}What's Next:\n- Login to your account\n- Complete your profile\n- Join community discussions\n- Access member resources\n\nLogin: ${process.env.FRONTEND_URL}/auth/login\n\nWelcome to the SLMA community!\n\nBest regards,\nSLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ User verification email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -618,7 +657,7 @@ export const sendAdminPaymentVerificationEmail = async (email, name, status, amo
 `⚠️ We encountered an issue while verifying your payment of ETB ${amount}.\n\nPayment Details:\nAmount: ETB ${amount}\n${membershipId ? `Membership ID: ${membershipId}\n` : ''}Status: Rejected\n${notes ? `Reason: ${notes}\n` : ''}Date: ${new Date().toLocaleDateString()}\n\nWhat to do next:\n1. Review the reason for rejection\n2. Verify payment details match our account\n3. Ensure receipt shows transaction details\n4. Contact support for assistance\n\nOur Payment Details:\n- CBE Account: 1000212203746 (Sofiya Yasin)\n- TeleBirr: +251 93 067 0088 (Sofiya Yasin)\n\nContact: membership@siltecommunity.org or +251 93 067 0088`}\n\nBest regards,\nSLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Admin payment verification email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -696,7 +735,7 @@ export const sendPaymentRejectedEmail = async (email, name, membershipId, reason
       text: `Hello ${name},\n\nWe encountered an issue with your payment receipt.\n\nReason: ${reason}\n\nMembership ID: ${membershipId}\n\nPlease:\n1. Verify payment details match our account\n2. Ensure receipt shows transaction details\n3. Upload new receipt or contact support\n\nContact: membership@siltecommunity.org\nPhone: +251 93 067 0088\nAccount: CBE 1000212203746\n\nBest regards,\nSLMA Team`
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Payment rejected email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {
@@ -762,7 +801,7 @@ export const sendMonthlyPaymentReminder = async (email, name, dueDate, amount, m
       `,
       text: `Hello ${name},\n\nYour membership payment is coming due on ${dueStr}.\nAmount: ETB ${amount || 500}\nMembership ID: ${membershipId}\n\nPayment: CBE 1000212203746 (Sofiya Yasin), Telebirr +251930670088\n\nView: ${process.env.FRONTEND_URL}/membership\n\nBest regards,\nSLMA Team`
     };
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
     console.log(`✅ Payment reminder sent to ${email}`);
     return info;
   } catch (error) {
@@ -888,7 +927,7 @@ Silte Language & Multicultural Association
 `
     };
     
-    const result = await transporter.sendMail(mailOptions);
+    const result = await sendMail(mailOptions);
     console.log(`✅ Donation email sent to ${to}: ${result.messageId}`);
     return { success: true, messageId: result.messageId };
     
@@ -1034,7 +1073,7 @@ Silte Language & Multicultural Association
 `
     };
     
-    const result = await transporter.sendMail(mailOptions);
+    const result = await sendMail(mailOptions);
     console.log(`✅ Donation verification email sent to ${to}: ${result.messageId}`);
     return { success: true, messageId: result.messageId };
     
@@ -1145,7 +1184,7 @@ Silte Language & Multicultural Association
 `
     };
     
-    const result = await transporter.sendMail(mailOptions);
+    const result = await sendMail(mailOptions);
     console.log(`✅ Donation receipt confirmation sent to ${to}: ${result.messageId}`);
     return { success: true, messageId: result.messageId };
     
