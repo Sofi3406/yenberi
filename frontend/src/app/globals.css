@@ -13222,6 +13222,7 @@ html {
   display: flex;
   justify-content: flex-end;
   padding-top: 0;
+  z-index: 1200;
 }
 
 @keyframes headerSlideIn {
@@ -13245,12 +13246,17 @@ html {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
   box-shadow: -18px 0 40px rgba(15, 23, 42, 0.2);
   overflow-y: auto;
+  color: #0f172a;
+  position: relative;
+  z-index: 1;
 }
 
 .mobile-nav-link {
+  display: block;
   padding: 1rem 1.25rem;
   color: #0f172a;
   font-weight: 700;
+  font-size: 0.95rem;
   text-decoration: none;
   border-radius: 12px;
   transition: all 0.3s ease;
