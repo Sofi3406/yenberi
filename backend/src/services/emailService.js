@@ -456,8 +456,12 @@ export const sendWelcomeEmail = async (email, name, membershipId) => {
  */
 export const testEmailService = async (toEmail) => {
   try {
+    const fromAddress = resendFrom || process.env.SMTP_FROM;
+    if (!fromAddress) {
+      throw new Error('Missing sender address. Set RESEND_FROM or SMTP_FROM.');
+    }
     const testMailOptions = {
-      from: `"SLMA Test" <${process.env.SMTP_FROM}>`,
+      from: `"SLMA Test" <${fromAddress}>`,
       to: toEmail,
       subject: 'Test Email from SLMA Backend',
       text: 'This is a test email from your SLMA backend server. If you receive this, email service is working!',
