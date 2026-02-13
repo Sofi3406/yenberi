@@ -91,7 +91,7 @@ const Header = () => {
             <div className="user-menu">
               <button className="user-btn">
                 <span>👤</span>
-                <span>{user.name.split(' ')[0]}</span>
+                <span className="user-name">{user.name.split(' ')[0]}</span>
               </button>
               <button className="btn btn-outline" onClick={handleLogout}>
                 Logout

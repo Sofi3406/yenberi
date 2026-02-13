@@ -253,7 +253,7 @@ export default function AdminDashboardPage() {
                 Welcome back, {user.name} • {user.role === 'super_admin' ? 'Super Admin' : 'Woreda Admin'}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/profile/edit" className="admin-ghost-button">
                 <Settings className="w-4 h-4" />
                 Edit Profile
@@ -319,8 +319,8 @@ export default function AdminDashboardPage() {
                   {action.title}
                 </h3>
                 <p className="text-sm text-gray-600 mb-3 relative z-10">{action.description}</p>
-                <div className="flex items-center justify-between relative z-10">
-                  <span className="text-2xl font-bold text-gray-900">{action.count}</span>
+                <div className="admin-action-footer relative z-10">
+                  <span className="admin-action-count text-2xl font-bold text-gray-900">{action.count}</span>
                   <span className="text-sm text-gray-400 group-hover:text-gray-600">View →</span>
                 </div>
               </Link>
