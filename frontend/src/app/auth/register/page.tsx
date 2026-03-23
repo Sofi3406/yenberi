@@ -478,13 +478,13 @@ const RegistrationForm = () => {
             </p>
             <div className="payment-details">
               <div className="payment-detail">
-                <strong>CBE Account:</strong> 1000212203746
+                <strong>CBE Account:</strong> 1000.......
               </div>
               <div className="payment-detail">
-                <strong>Account Name:</strong> Sofiya Yasin
+                <strong>Account Name:</strong> SLMA TEAM
               </div>
               <div className="payment-detail">
-                <strong>Telebirr:</strong> +251930670088
+                <strong>Telebirr:</strong> +2519.....
               </div>
             </div>
             <p className="payment-instruction">
