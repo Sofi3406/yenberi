@@ -143,8 +143,8 @@ export default function HomePage() {
 
             <div className="about-card">
               <div className="about-card-header">
-                <p className="about-kicker">About SLMA</p>
-                <h2 className="about-title">Silte Lmat Mehber (SLMA)</h2>
+                <p className="about-kicker">About ስልማ</p>
+                <h2 className="about-title">Silte Lmat Mehber (ስልማ)</h2>
                 <p className="about-summary">
                   Uniting diaspora and local communities to preserve heritage while advancing
                   education, healthcare, and economic opportunity.
