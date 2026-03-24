@@ -248,24 +248,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="login-footer">
-            <div className="login-footer-content">
-              <p className="login-footer-text">
-                Need help? Contact support at{' '}
-                <a 
-                  href="mailto:support@slma.org" 
-                  className="login-footer-link"
-                >
-                  support@slma.org
-                </a>
-              </p>
-              <p className="login-footer-copyright">
-                &copy; {new Date().getFullYear()} Silte Lmat Mehber. All rights reserved.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Motivational Messages Sidebar - Middle Section */}
       <div className="motivational-sidebar">
