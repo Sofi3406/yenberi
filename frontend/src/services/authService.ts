@@ -105,13 +105,24 @@ export const authService = {
   logout: () => {
     safeLocalStorage.removeItem('slma_token');
     safeLocalStorage.removeItem('slma_user');
-    window.location.href = '/';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   },
 
   // Get current user
   getCurrentUser: (): User | null => {
     const userStr = safeLocalStorage.getItem('slma_user');
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+
+    try {
+      return JSON.parse(userStr) as User;
+    } catch {
+      // Clear corrupted local storage to avoid refresh-time crashes.
+      safeLocalStorage.removeItem('slma_user');
+      safeLocalStorage.removeItem('slma_token');
+      return null;
+    }
   },
 
   // Get token
